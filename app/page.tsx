@@ -1,7 +1,14 @@
 "use client";
-
+import { diagnosticProcedures } from "../app/data/diagnosticProcedures";
 import { useState } from "react";
-const menuItems = [
+import { demoDiagnosis } from "../lib/demoDiagnosis";
+import type { DiagnosisResult } from "../types/diagnosis";
+import GuidedDiagnostic from "./components/GuidedDiagnostic";
+import DiagnosisPanel from "./components/DiagnosisPanel";
+import Panel from "./components/Panel";
+import Tab from "./components/Tab";
+
+const menuItems: [string, string, boolean][] = [
   ["⌂", "Oversikt", true],
   ["＋", "Ny sak", false],
   ["⌕", "Feilsøking", false],
@@ -22,9 +29,18 @@ const causes = [
 ];
 
 export default function Home() {
+  const [activeFaultCode, setActiveFaultCode] = useState("P0401");
+const [currentTestStep, setCurrentTestStep] = useState(0);
+
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
 const [analysis, setAnalysis] = useState("");
+const [diagnosis, setDiagnosis] =
+  useState<DiagnosisResult | null>(null);
 const [isAnalyzing, setIsAnalyzing] = useState(false);
+const currentFault = diagnosis?.faultLibraryData?.find(
+  (fault) => fault.code === activeFaultCode
+
+);
   async function analyzeImage() {
   if (!selectedImage) {
     setAnalysis("Velg et bilde først.");
@@ -49,7 +65,8 @@ const [isAnalyzing, setIsAnalyzing] = useState(false);
       throw new Error(data.error || "Analysen mislyktes.");
     }
 
-    setAnalysis(data.analysis);
+    setDiagnosis(data.diagnosis);
+setAnalysis(JSON.stringify(data.diagnosis, null, 2));
   } catch (error) {
     setAnalysis(
       error instanceof Error
@@ -172,11 +189,231 @@ const [isAnalyzing, setIsAnalyzing] = useState(false);
 >
   {isAnalyzing ? "Analyserer bilde..." : "Analyser bilde"}
 </button>
+<button
+  type="button"
+  onClick={() => {
+  setDiagnosis(demoDiagnosis);
+  setAnalysis(JSON.stringify(demoDiagnosis, null, 2));
+}}
+>
+  Vis demo
+</button>
+{diagnosis && (
+  <div className="mb-4 space-y-3">
+    <h3 className="text-lg font-semibold text-white">Feilkoder</h3>
+
+    {diagnosis.faultCodes.map(
+      (
+        fault: {
+          code: string;
+          description: string;
+          module: string;
+        },
+        index: number
+      ) => (
+        <div
+          key={`${fault.code}-${index}`}
+          className="rounded-xl border border-slate-700 bg-slate-900 p-4"
+        >
+          <div className="text-lg font-bold text-blue-400">
+            {fault.code}
+          </div>
+
+          <div className="mt-1 text-sm text-slate-200">
+            {fault.description}
+          </div>
+
+          <div className="mt-2 text-xs text-slate-400">
+            {fault.module}
+          </div>
+        </div>
+      )
+    )}
+  </div>
+)}
+{diagnosis?.faultLibraryData?.map((fault) => (
+  <div
+    key={fault.code}
+    className="mb-4 rounded-xl border border-blue-700 bg-blue-950/30 p-4"
+  >
+    <h3 className="text-lg font-bold text-blue-300">
+      {fault.code} – {fault.title}
+    </h3>
+
+    <div className="mt-3 grid gap-4 md:grid-cols-2">
+      <div>
+        <p className="font-semibold text-slate-200">
+          Alvorlighetsgrad
+        </p>
+        <p className="text-slate-300">{fault.severity}</p>
+      </div>
+
+      <div>
+        <p className="font-semibold text-slate-200">
+          Estimert reparasjonstid
+        </p>
+        <p className="text-slate-300">
+          {fault.estimatedRepairTime}
+        </p>
+      </div>
+    </div>
+
+    <div className="mt-4">
+      <p className="font-semibold text-slate-200">
+        Berørte systemer
+      </p>
+
+      <div className="mt-2 flex flex-wrap gap-2">
+        {fault.systems.map((system: string) => (
+          <span
+            key={system}
+            className="rounded bg-slate-800 px-3 py-1 text-sm"
+          >
+            {system}
+          </span>
+        ))}
+      </div>
+    </div>
+
+    <div className="mt-4">
+      <p className="font-semibold text-slate-200">
+        Live-data som bør kontrolleres
+      </p>
+
+      <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-slate-300">
+        {fault.liveData.map((item: string) => (
+          <li key={item}>{item}</li>
+        ))}
+      </ul>
+    </div>
+    <div className="mt-4">
+  <p className="font-semibold text-slate-200">
+    Symptomer
+  </p>
+
+  <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-slate-300">
+    {fault.symptoms.map((item: string) => (
+      <li key={item}>{item}</li>
+    ))}
+  </ul>
+</div>
+
+<div className="mt-4">
+  <p className="font-semibold text-slate-200">
+    Vanlige årsaker
+  </p>
+
+  <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-slate-300">
+    {fault.commonCauses.map((item: string) => (
+      <li key={item}>{item}</li>
+    ))}
+  </ul>
+</div>
+
+<div className="mt-4">
+  <p className="font-semibold text-slate-200">
+    Anbefalte tester
+  </p>
+
+  <ol className="mt-2 list-decimal space-y-1 pl-5 text-sm text-slate-300">
+    {fault.recommendedTests.map((item: string) => (
+      <li key={item}>{item}</li>
+    ))}
+  </ol>
+</div>
+  </div>
+))}
+{diagnosis && (
+  <div className="mb-4 rounded-xl border border-slate-700 bg-slate-900 p-4">
+    <h3 className="mb-3 text-lg font-semibold text-white">
+      Freeze Frame
+    </h3>
+
+    <div className="space-y-2">
+      {Object.entries(diagnosis.freezeFrame).map(([key, value]) => (
+        <div
+          key={key}
+          className="flex justify-between border-b border-slate-800 pb-2 text-sm"
+        >
+          <span className="text-slate-400">{key}</span>
+          <span className="font-medium text-white">{String(value)}</span>
+        </div>
+      ))}
+    </div>
+  </div>
+)}
+
+{diagnosis && (
+  <div className="mb-4 rounded-xl border border-slate-700 bg-slate-900 p-4">
+    <h3 className="mb-3 text-lg font-semibold text-white">
+      Live Data
+    </h3>
+
+    <div className="space-y-2">
+      {Object.entries(diagnosis.liveData).map(([key, value]) => (
+        <div
+          key={key}
+          className="flex justify-between border-b border-slate-800 pb-2 text-sm"
+        >
+          <span className="text-slate-400">{key}</span>
+          <span className="font-medium text-white">{String(value)}</span>
+        </div>
+      ))}
+    </div>
+  </div>
+)}
+
+{diagnosis && (
+  <div className="mb-4 rounded-xl border border-slate-700 bg-slate-900 p-4">
+    <h3 className="mb-3 text-lg font-semibold text-white">
+      Sannsynlige årsaker
+    </h3>
+
+    <ul className="space-y-2">
+      {diagnosis.likelyCauses.map(
+        (cause: string, index: number) => (
+          <li
+            key={index}
+            className="rounded-lg bg-slate-800 px-3 py-2 text-sm text-slate-200"
+          >
+            {index + 1}. {cause}
+          </li>
+        )
+      )}
+    </ul>
+  </div>
+)}
+
+{diagnosis && (
+  <div className="mb-4 rounded-xl border border-slate-700 bg-slate-900 p-4">
+    <h3 className="mb-3 text-lg font-semibold text-white">
+      Neste tester
+    </h3>
+
+    <ol className="space-y-2">
+      {diagnosis.nextTests.map(
+        (test: string, index: number) => (
+          <li
+            key={index}
+            className="rounded-lg bg-slate-800 px-3 py-2 text-sm text-slate-200"
+          >
+            {index + 1}. {test}
+          </li>
+        )
+      )}
+    </ol>
+  </div>
+)}
+
+{/*
+
 {analysis && (
   <div className="mb-4 whitespace-pre-wrap rounded-xl border border-slate-700 bg-slate-900 p-4 text-sm text-slate-200">
     {analysis}
   </div>
+
 )}
+  */}
           <div className="mb-4 grid grid-cols-[1fr_320px] gap-4">
             <div className="rounded-xl border border-slate-700 bg-[#0b1c2b] p-4">
               <div className="grid grid-cols-[120px_1.4fr_1fr_1fr_1fr] gap-4">
@@ -185,13 +422,31 @@ const [isAnalyzing, setIsAnalyzing] = useState(false);
                 </div>
 
                 <div>
-                  <h3 className="text-lg font-semibold">Volkswagen Golf</h3>
-                  <p className="text-sm text-slate-300">2018 · 2.0 TDI · 110 kW</p>
-                  <p className="text-sm text-slate-400">
-                    VIN: WVWZZZAUZJW123456
-                  </p>
-                  <p className="text-sm text-slate-400">Reg.nr: AB 12345</p>
-                  <p className="text-sm text-slate-400">Km: 142 300 km</p>
+                  <h3 className="text-lg font-semibold">
+  {diagnosis
+    ? `${diagnosis.vehicle.make} ${diagnosis.vehicle.model}`.trim()
+    : "Volkswagen Golf"}
+</h3>
+
+<p className="text-sm text-slate-300">
+  {diagnosis
+    ? `${diagnosis.vehicle.year} · ${diagnosis.vehicle.engine}`
+    : "2018 · 2.0 TDI · 110 kW"}
+</p>
+
+<p className="text-sm text-slate-400">
+  Reg.nr:{" "}
+  {diagnosis
+    ? diagnosis.vehicle.registration || "Ikke funnet"
+    : "AB 12345"}
+</p>
+
+<p className="text-sm text-slate-400">
+  Km:{" "}
+  {diagnosis
+    ? diagnosis.vehicle.mileage || "Ikke funnet"
+    : "142 300 km"}
+</p>
                 </div>
 
                 <Info label="Drivstoff" value="Diesel" />
@@ -215,13 +470,24 @@ const [isAnalyzing, setIsAnalyzing] = useState(false);
           </div>
 
           <div className="mb-4 flex gap-3 overflow-x-auto">
-            <Tab label="Oversikt (alle koder)" />
-            <Tab label="P0401 · EGR Flow Insufficient" active />
-            <Tab label="P0299 · Turbo Underboost" />
-            <button className="rounded-lg border border-slate-700 px-4 py-3 text-sm text-slate-300">
-              ＋ Legg til feilkode
-            </button>
-          </div>
+  <Tab label="Oversikt (alle koder)" />
+
+  {diagnosis?.faultCodes.map((fault) => (
+  <Tab
+    key={fault.code}
+    label={`${fault.code} · ${fault.description}`}
+    active={activeFaultCode === fault.code}
+    onClick={() => {
+      setActiveFaultCode(fault.code);
+      setCurrentTestStep(0);
+    }}
+  />
+))}
+
+  <button className="rounded-lg border border-slate-700 px-4 py-3 text-sm text-slate-300">
+    ＋ Legg til feilkode
+  </button>
+</div>
 
           <div className="grid grid-cols-[260px_1fr_1fr] gap-4">
             <div className="space-y-4">
@@ -233,15 +499,26 @@ const [isAnalyzing, setIsAnalyzing] = useState(false);
                   <li>• Sort røyk ved hard belastning</li>
                   <li>• Metallisk lyd ved høyt turtall</li>
                 </ul>
-              </Panel>
+              
 
-              <Panel title="Freeze frame data">
-                <DataRow label="Motorhastighet" value="2450 rpm" />
-                <DataRow label="Kjøretøyhastighet" value="78 km/t" />
-                <DataRow label="Kjølevæsketemperatur" value="88 °C" />
-                <DataRow label="Luftmasse" value="420 mg/slag" />
-                <DataRow label="EGR ønsket" value="35 %" />
-                <DataRow label="EGR faktisk" value="5 %" />
+              {diagnosis ? (
+  Object.entries(diagnosis.freezeFrame).map(([key, value]) => (
+    <DataRow
+      key={key}
+      label={key}
+      value={String(value)}
+    />
+  ))
+) : (
+  <>
+    <DataRow label="Motorhastighet" value="2450 rpm" />
+    <DataRow label="Kjøretøyhastighet" value="78 km/t" />
+    <DataRow label="Kjølevæsketemperatur" value="88 °C" />
+    <DataRow label="Luftmasse" value="420 mg/slag" />
+    <DataRow label="EGR ønsket" value="35 %" />
+    <DataRow label="EGR faktisk" value="5 %" />
+  </>
+)}
               </Panel>
 
               <Panel title="Bilder og data">
@@ -254,116 +531,33 @@ const [isAnalyzing, setIsAnalyzing] = useState(false);
             </div>
 
             <div className="space-y-4">
-              <Panel title="✦ AI-analyse – P0401">
-                <h4 className="mb-3 font-medium">Sannsynlige årsaker</h4>
-
-                <div className="space-y-3">
-                  {causes.map(([name, score, level], index) => (
-                    <div key={name}>
-                      <div className="mb-1 flex items-center gap-2 text-sm">
-                        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-slate-700">
-                          {index + 1}
-                        </span>
-                        <span className="flex-1">{name}</span>
-                        <span>{score}</span>
-                        <span className="rounded bg-slate-700 px-2 py-1 text-xs">
-                          {level}
-                        </span>
-                      </div>
-                      <div className="h-1.5 overflow-hidden rounded bg-slate-700">
-                        <div
-                          className="h-full bg-blue-500"
-                          style={{
-                            width: score,
-                          }}
-                        />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                <h4 className="mb-2 mt-5 font-medium">Hvorfor tror jeg dette?</h4>
-                <p className="text-sm leading-6 text-slate-300">
-                  EGR faktisk er betydelig lavere enn ønsket. Differansetrykket
-                  og symptomene tyder på blokkering i EGR-systemet eller en
-                  mekanisk feil.
-                </p>
-
-                <h4 className="mb-2 mt-5 font-medium">
-                  Anbefalt testrekkefølge
-                </h4>
-                <ol className="space-y-2 text-sm text-slate-300">
-                  <li>1. Kontroller EGR-ventilens funksjon</li>
-                  <li>2. Kontroller differansetrykksensor og slanger</li>
-                  <li>3. Inspiser EGR-kanaler for sot</li>
-                  <li>4. Kontroller luftmassemåler</li>
-                  <li>5. Utfør funksjonstest etter tiltak</li>
-                </ol>
-
-                <button className="mt-5 rounded-lg bg-blue-600 px-4 py-3 text-sm font-medium">
-                  ▶ Start veiledet feilsøking
-                </button>
-              </Panel>
-
+              {diagnosis && (
+  <DiagnosisPanel
+    diagnosis={diagnosis}
+    activeFaultCode={activeFaultCode}
+  />
+)}
+              
               <div className="rounded-xl border border-emerald-700 bg-emerald-950/30 p-4">
                 <h3 className="font-semibold text-emerald-300">
                   ✦ AI: Felles rotårsak oppdaget
                 </h3>
                 <p className="mt-2 text-sm text-slate-300">
-                  P0401 og P0299 har sannsynligvis samme rotårsak.
-                </p>
+  Analyse for {activeFaultCode}.
+      </p>
                 <p className="mt-3 text-sm text-slate-200">
                   <strong>Sannsynlig rotårsak:</strong> Tilstopping i EGR-systemet
                   gir lav EGR-strømning og påvirker ladetrykket.
                 </p>
               </div>
             </div>
-
-            <div className="space-y-4">
-              <Panel title="Pågående teststeg – P0401">
-                <div className="mb-4 flex items-start gap-3">
-                  <span className="flex h-8 w-8 items-center justify-center rounded-full border border-blue-500 text-blue-300">
-                    1
-                  </span>
-                  <div>
-                    <h4 className="font-medium">
-                      Kontroller EGR-ventil funksjon
-                    </h4>
-                    <p className="mt-2 text-sm leading-6 text-slate-300">
-                      Kontroller at EGR-ventilen beveger seg normalt når
-                      aktuatoren aktiveres.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="mb-5 grid grid-cols-3 gap-2">
-                  <button className="rounded-lg bg-emerald-700 py-3 text-sm">
-                    ✓ OK
-                  </button>
-                  <button className="rounded-lg bg-amber-700 py-3 text-sm">
-                    ⚠ Feil funnet
-                  </button>
-                  <button className="rounded-lg bg-slate-700 py-3 text-sm">
-                    Ikke utført
-                  </button>
-                </div>
-
-                <label className="text-sm text-slate-400">Kommentar</label>
-                <textarea
-                  className="mt-2 min-h-24 w-full rounded-lg border border-slate-700 bg-[#071522] p-3 text-sm outline-none"
-                  placeholder="Skriv kommentar her..."
-                />
-
-                <div className="mt-4 flex justify-between">
-                  <button className="rounded-lg border border-slate-600 px-4 py-3 text-sm">
-                    📷 Ta bilde
-                  </button>
-                  <button className="rounded-lg bg-blue-600 px-5 py-3 text-sm">
-                    Neste steg →
-                  </button>
-                </div>
-              </Panel>
-
+<div className="space-y-4">
+              <GuidedDiagnostic
+  activeFaultCode={activeFaultCode}
+  currentTestStep={currentTestStep}
+  setCurrentTestStep={setCurrentTestStep}
+/>
+             
               <div className="grid grid-cols-2 gap-4">
                 <Panel title="Historikk – P0401">
                   <div className="space-y-2 text-xs text-slate-300">
@@ -398,42 +592,13 @@ function Info({ label, value }: { label: string; value: string }) {
   );
 }
 
-function Tab({ label, active = false }: { label: string; active?: boolean }) {
-  return (
-    <button
-      className={`whitespace-nowrap rounded-lg border px-4 py-3 text-sm ${
-        active
-          ? "border-blue-500 bg-blue-950/50 text-white"
-          : "border-slate-700 bg-[#0b1c2b] text-slate-300"
-      }`}
-    >
-      {label}
-    </button>
-  );
-}
-
-function Panel({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <section className="rounded-xl border border-slate-700 bg-[#0b1c2b] p-4 shadow-lg shadow-black/10">
-      <h3 className="mb-4 font-semibold">{title}</h3>
-      {children}
-    </section>
-  );
-}
-
 function DataRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex justify-between border-b border-slate-800 py-1.5 text-sm">
       <span className="text-slate-400">{label}</span>
       <span>{value}</span>
     </div>
-  );
+      );
 }
 
 function Photo({ label }: { label: string }) {

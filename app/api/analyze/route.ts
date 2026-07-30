@@ -1,6 +1,7 @@
 import OpenAI from "openai";
 import { NextResponse } from "next/server";
-
+import { diagnosisPrompt } from "@/lib/prompts";
+import { faultLibrary } from "@/app/data/faultLibrary";
 export const runtime = "nodejs";
 
 const openai = new OpenAI({
@@ -39,23 +40,9 @@ export async function POST(request: Request) {
           role: "user",
           content: [
             {
-              type: "input_text",
-              text: `
-Analyser bildet som en profesjonell bilteknisk assistent.
+            type: "input_text",
+  text: diagnosisPrompt,
 
-Les bare informasjon som faktisk er synlig i bildet.
-
-Finn:
-- feilkoder
-- beskrivelser
-- styreenhet
-- freeze frame-data
-- live-data
-- måleenheter
-- annen relevant diagnosetekst
-
-Svar på norsk og marker usikker tekst tydelig.
-              `.trim(),
             },
             {
               type: "input_image",
@@ -67,9 +54,92 @@ Svar på norsk og marker usikker tekst tydelig.
       ],
     });
 
-    return NextResponse.json({
-      analysis: response.output_text,
-    });
+    const rawResult = response.output_text;
+
+try {
+  const diagnosis = JSON.parse(rawResult);
+
+  const faultCodes: string[] = Array.isArray(diagnosis.faultCodes)
+    ? diagnosis.faultCodes
+        .map((fault: unknown) => {
+          if (typeof fault === "string") {
+            return fault.toUpperCase();
+          }
+
+          if (
+            typeof fault === "object" &&
+            fault !== null &&
+            "code" in fault &&
+            typeof fault.code === "string"
+          ) {
+            return fault.code.toUpperCase();
+          }
+
+          return null;
+        })
+        .filter((code: string | null): code is string => code !== null)
+    : [];
+
+  const libraryMatches = faultCodes
+    .map((code) => {
+      const faultInfo = faultLibrary[code];
+
+      if (!faultInfo) {
+        return null;
+      }
+
+      return {
+        code,
+        ...faultInfo,
+      };
+    })
+    .filter((fault) => fault !== null);
+
+  const libraryCauses = libraryMatches.flatMap(
+    (fault) => fault.commonCauses
+  );
+
+  const libraryTests = libraryMatches.flatMap(
+    (fault) => fault.recommendedTests
+  );
+
+  const combinedCauses = [
+    ...new Set([
+      ...libraryCauses,
+      ...(Array.isArray(diagnosis.likelyCauses)
+        ? diagnosis.likelyCauses
+        : []),
+    ]),
+  ];
+
+  const combinedTests = [
+    ...new Set([
+      ...libraryTests,
+      ...(Array.isArray(diagnosis.nextTests)
+        ? diagnosis.nextTests
+        : []),
+    ]),
+  ];
+
+  const enrichedDiagnosis = {
+    ...diagnosis,
+    likelyCauses: combinedCauses,
+    nextTests: combinedTests,
+    faultLibraryData: libraryMatches,
+  };
+
+  return NextResponse.json({
+    diagnosis: enrichedDiagnosis,
+  });
+} catch {
+  console.error("AI returnerte ugyldig JSON:", rawResult);
+
+  return NextResponse.json(
+    { error: "AI-svaret kunne ikke leses som JSON." },
+    { status: 500 }
+  );
+}
+
   } catch (error) {
     console.error("Bildeanalyse feilet:", error);
 
