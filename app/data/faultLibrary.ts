@@ -60,6 +60,7 @@ export const faultLibrary: Record<string, FaultInfo> = {
     estimatedRepairTime: "1–3 timer",
   },
 
+
   P0299: {
     title: "Turbo Underboost",
 
@@ -98,5 +99,50 @@ export const faultLibrary: Record<string, FaultInfo> = {
     ],
 
     estimatedRepairTime: "2–5 timer",
+  },
+
+
+  P2121: {
+    title: "Throttle/Pedal Position Sensor",
+
+    severity: "Medium",
+
+    systems: [
+      "Gasspedal",
+      "Gasspjeld",
+      "Motorstyring",
+    ],
+
+    symptoms: [
+      "Ustabil gassrespons",
+      "Redusert motoreffekt",
+      "Motorlampe",
+      "Nødmodus",
+    ],
+
+    commonCauses: [
+      "Defekt gasspedalsensor",
+      "Avvik mellom sensorsignaler",
+      "Ledningsfeil",
+      "Kontaktproblem",
+    ],
+
+    recommendedTests: [
+      "Sammenlign gasspedal sensor 1 og 2",
+      "Kontroller gasspjeld respons",
+      "Kontroller ledningsnett og kontakter",
+      "Kontroller batterispenning",
+    ],
+
+    liveData: [
+      "Gasspedal sensor 1",
+      "Gasspedal sensor 2",
+      "Gasspjeld ønsket posisjon",
+      "Gasspjeld faktisk posisjon",
+      "Batterispenning",
+      "RPM",
+    ],
+
+    estimatedRepairTime: "1–2 timer",
   },
 };

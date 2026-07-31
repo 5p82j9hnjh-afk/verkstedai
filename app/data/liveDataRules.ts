@@ -22,4 +22,17 @@ export const liveDataRules = {
       },
     ],
   },
+
+  P2121: {
+    checks: [
+      {
+        type: "difference",
+        first: "Gasspedal sensor 1",
+        second: "Gasspedal sensor 2",
+        limit: 10,
+        message:
+          "Avvik mellom gasspedal sensor 1 og sensor 2. Kontroller pedalmodul og ledningsnett.",
+      },
+    ],
+  },
 };

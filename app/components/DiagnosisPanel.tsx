@@ -9,9 +9,8 @@ import LiveDataInput from "@/app/components/LiveDataInput";
 
 type DiagnosisPanelProps = {
   diagnosis: DiagnosisResult;
-  activeFaultCode: "P0401" | "P2453";
+  activeFaultCode: string;
 };
-
 type HistoryItem = {
   type: "test" | "liveData";
   text: string;
@@ -181,48 +180,23 @@ export default function DiagnosisPanel({
         faultCode={fault.code}
         liveData={fault.liveData}
         onAnalysisComplete={(result) =>
-          setHistory((prev) => [
-            ...prev,
-            {
-              type: "liveData",
-              text: `📊 Live-data analyse → ${result}`,
-            },
-          ])
-        }
-      />      <div className="rounded-lg border border-slate-700 p-4">
+  setHistory((prev) => {
+    const text = `📊 Live-data analyse → ${result}`;
 
-        <h4 className="font-semibold">
-          🧪 Pågående test
-        </h4>
+    if (prev.some((item) => item.text === text)) {
+      return prev;
+    }
 
-        <p className="text-slate-300">
-          {currentTest?.title ?? "Ingen test tilgjengelig"}
-        </p>
-
-        {currentTest?.instructions && (
-          <ul className="mt-3 list-disc pl-5 text-sm text-slate-300">
-            {currentTest.instructions.map((instruction) => (
-              <li key={instruction}>
-                {instruction}
-              </li>
-            ))}
-          </ul>
-        )}
-
-        <p className="mt-3 text-slate-200">
-          {activeTitle}
-        </p>
-
-        <ul className="mt-3 list-disc space-y-1 pl-5 text-slate-300">
-          {activeTest?.instructions.map((item: string) => (
-            <li key={item}>
-              {item}
-            </li>
-          ))}
-        </ul>
-
-      </div>
-
+    return [
+      ...prev,
+      {
+        type: "liveData",
+        text,
+      },
+    ];
+  })
+}
+      />      
 
       <div className="rounded-lg border border-cyan-700 bg-cyan-950/30 p-4">
 

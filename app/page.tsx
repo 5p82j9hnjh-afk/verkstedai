@@ -7,6 +7,8 @@ import GuidedDiagnostic from "./components/GuidedDiagnostic";
 import DiagnosisPanel from "./components/DiagnosisPanel";
 import Panel from "./components/Panel";
 import Tab from "./components/Tab";
+import { rootCauseLibrary } from "./data/rootCauseLibrary";
+export const dynamic = "force-dynamic";
 
 const menuItems: [string, string, boolean][] = [
   ["⌂", "Oversikt", true],
@@ -78,9 +80,10 @@ setAnalysis(JSON.stringify(data.diagnosis, null, 2));
   }
 }
   return (
-    <main className="min-h-screen bg-[#06111b] text-slate-100">
-      <div className="mx-auto flex min-h-screen max-w-[1600px]">
-        <aside className="flex w-56 shrink-0 flex-col border-r border-slate-700/70 bg-[#071a29] p-4">
+    <main className="min-h-screen bg-[#06111b] text-slate-100 touch-auto">
+      
+      <div className="mx-auto flex min-h-screen max-w-[1600px] relative z-0">
+        <aside className="hidden md:flex w-56 shrink-0 flex-col border-r border-slate-700/70 bg-[#071a29] p-4">
           <div className="mb-7 flex items-center gap-3 px-2">
             <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-600 text-2xl">
               🔧
@@ -168,15 +171,18 @@ setAnalysis(JSON.stringify(data.diagnosis, null, 2));
 <input
   type="file"
   accept="image/*"
+  capture="environment"
   className="hidden"
   id="image-upload"
   onChange={(e) => {
     const file = e.target.files?.[0];
+
     if (file) {
       setSelectedImage(file);
     }
   }}
-/>{selectedImage && (
+/>
+{selectedImage && (
   <div className="mb-4 rounded-lg border border-slate-700 bg-slate-900 p-3 text-sm text-slate-200">
     Valgt bilde: {selectedImage.name}
   </div>
@@ -192,9 +198,10 @@ setAnalysis(JSON.stringify(data.diagnosis, null, 2));
 <button
   type="button"
   onClick={() => {
-  setDiagnosis(demoDiagnosis);
-  setAnalysis(JSON.stringify(demoDiagnosis, null, 2));
-}}
+    setDiagnosis(demoDiagnosis);
+    setAnalysis(JSON.stringify(demoDiagnosis, null, 2));
+  }}
+  className="mb-4 w-full rounded-xl bg-blue-600 px-4 py-3 font-semibold text-white"
 >
   Vis demo
 </button>
@@ -528,6 +535,20 @@ setAnalysis(JSON.stringify(data.diagnosis, null, 2));
                   <Photo label="Live-data" />
                 </div>
               </Panel>
+<div className="rounded-xl border border-emerald-700 bg-emerald-950/30 p-4">
+                <h3 className="font-semibold text-emerald-300">
+                  ✦ AI: Felles rotårsak oppdaget
+                </h3>
+                <p className="mt-2 text-sm text-slate-300">
+  Analyse for {activeFaultCode}.
+      </p>
+                <p className="mt-3 text-sm text-slate-200">
+                  <strong>Sannsynlig rotårsak:</strong>{" "}
+{rootCauseLibrary[
+  activeFaultCode as keyof typeof rootCauseLibrary
+]?.cause ?? "Ingen rotårsak tilgjengelig."}
+                </p>
+              </div>
             </div>
 
             <div className="space-y-4">
@@ -538,18 +559,6 @@ setAnalysis(JSON.stringify(data.diagnosis, null, 2));
   />
 )}
               
-              <div className="rounded-xl border border-emerald-700 bg-emerald-950/30 p-4">
-                <h3 className="font-semibold text-emerald-300">
-                  ✦ AI: Felles rotårsak oppdaget
-                </h3>
-                <p className="mt-2 text-sm text-slate-300">
-  Analyse for {activeFaultCode}.
-      </p>
-                <p className="mt-3 text-sm text-slate-200">
-                  <strong>Sannsynlig rotårsak:</strong> Tilstopping i EGR-systemet
-                  gir lav EGR-strømning og påvirker ladetrykket.
-                </p>
-              </div>
             </div>
 <div className="space-y-4">
               <GuidedDiagnostic
