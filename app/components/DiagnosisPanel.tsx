@@ -7,10 +7,14 @@ import type { DiagnosisResult } from "@/types/diagnosis";
 import DiagnosisSummary from "@/app/components/DiagnosisSummary";
 import LiveDataInput from "@/app/components/LiveDataInput";
 
-
 type DiagnosisPanelProps = {
   diagnosis: DiagnosisResult;
-   activeFaultCode: "P0401" | "P2453";
+  activeFaultCode: "P0401" | "P2453";
+};
+
+type HistoryItem = {
+  type: "test" | "liveData";
+  text: string;
 };
 
 export default function DiagnosisPanel({
@@ -21,7 +25,7 @@ export default function DiagnosisPanel({
     "ok" | "failed" | null
   >(null);
 
-  const [history, setHistory] = useState<string[]>([]);
+  const [history, setHistory] = useState<HistoryItem[]>([]);
   const [showSummary, setShowSummary] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
 
@@ -29,20 +33,24 @@ export default function DiagnosisPanel({
     diagnosis.faultLibraryData?.find(
       (item) => item.code === activeFaultCode
     );
-   const steps =
-  testSteps[
-    activeFaultCode as keyof typeof testSteps
-  ] ?? [];
 
-const currentTest = steps[currentStep];
-const isFinished =
-  currentStep >= steps.length - 1;
-const resultMessage =
-  testResult === "ok"
-    ? currentTest?.ok
-    : testResult === "failed"
-    ? currentTest?.failed
-    : null;
+  const steps =
+    testSteps[
+      activeFaultCode as keyof typeof testSteps
+    ] ?? [];
+
+  const currentTest = steps[currentStep];
+
+  const isFinished =
+    currentStep >= steps.length - 1;
+
+  const resultMessage =
+    testResult === "ok"
+      ? currentTest?.ok
+      : testResult === "failed"
+      ? currentTest?.failed
+      : null;
+
   useEffect(() => {
     setTestResult(null);
     setHistory([]);
@@ -66,34 +74,39 @@ const resultMessage =
 
   const currentTests =
     testSteps[
-  activeFaultCode as keyof typeof testSteps
-]
+      activeFaultCode as keyof typeof testSteps
+    ];
 
- const activeTest =
-  activeFaultCode in testSteps
-    ? testSteps[
-        activeFaultCode as keyof typeof testSteps
-      ][currentStep]
-    : undefined;
+  const activeTest =
+    activeFaultCode in testSteps
+      ? testSteps[
+          activeFaultCode as keyof typeof testSteps
+        ][currentStep]
+      : undefined;
 
   const recommendation = getNextRecommendation(
     activeFaultCode,
     testResult
   );
 
-  const stepNumber = currentStep + 1;
   const totalSteps = currentTests.length;
 
   const activeTitle =
     activeTest?.title ??
     "Ingen flere tester tilgjengelig.";
+
   function handleTestOk() {
     setTestResult("ok");
 
-   setHistory((prev) => [
-  ...prev,
-  `${activeTitle} → OK: ${currentTest?.ok ?? ""}`,
-]);
+    setHistory((prev) => [
+      ...prev,
+      {
+        type: "test",
+        text: `${activeTitle} → OK: ${
+          currentTest?.ok ?? ""
+        }`,
+      },
+    ]);
 
     setCurrentStep((prev) =>
       Math.min(
@@ -101,18 +114,27 @@ const resultMessage =
         totalSteps - 1
       )
     );
-  if (currentStep >= totalSteps - 1 && !showSummary) {
-  setShowSummary(true);
-}
+
+    if (
+      currentStep >= totalSteps - 1 &&
+      !showSummary
+    ) {
+      setShowSummary(true);
+    }
   }
 
   function handleTestFailed() {
     setTestResult("failed");
 
     setHistory((prev) => [
-  ...prev,
-  `${activeTitle} → Ikke OK: ${currentTest?.failed ?? ""}`,
-]);
+      ...prev,
+      {
+        type: "test",
+        text: `${activeTitle} → Ikke OK: ${
+          currentTest?.failed ?? ""
+        }`,
+      },
+    ]);
   }
 
   return (
@@ -154,36 +176,39 @@ const resultMessage =
         title="🔍 Vanlige årsaker"
         items={fault.commonCauses}
       />
-   <LiveDataInput
-  faultCode={fault.code}
-  liveData={fault.liveData}
-  onAnalysisComplete={(result) =>
-    setHistory((prev) => [
-      ...prev,
-      `📊 Live-data analyse → ${result}`,
-    ])
-  }
-/>
 
-
-      <div className="rounded-lg border border-slate-700 p-4">
+      <LiveDataInput
+        faultCode={fault.code}
+        liveData={fault.liveData}
+        onAnalysisComplete={(result) =>
+          setHistory((prev) => [
+            ...prev,
+            {
+              type: "liveData",
+              text: `📊 Live-data analyse → ${result}`,
+            },
+          ])
+        }
+      />      <div className="rounded-lg border border-slate-700 p-4">
 
         <h4 className="font-semibold">
           🧪 Pågående test
         </h4>
 
         <p className="text-slate-300">
-  {currentTest?.title ?? "Ingen test tilgjengelig"}
-</p>
-{currentTest?.instructions && (
-  <ul className="mt-3 list-disc pl-5 text-sm text-slate-300">
-    {currentTest.instructions.map((instruction) => (
-      <li key={instruction}>
-        {instruction}
-      </li>
-    ))}
-  </ul>
-)}
+          {currentTest?.title ?? "Ingen test tilgjengelig"}
+        </p>
+
+        {currentTest?.instructions && (
+          <ul className="mt-3 list-disc pl-5 text-sm text-slate-300">
+            {currentTest.instructions.map((instruction) => (
+              <li key={instruction}>
+                {instruction}
+              </li>
+            ))}
+          </ul>
+        )}
+
         <p className="mt-3 text-slate-200">
           {activeTitle}
         </p>
@@ -210,57 +235,68 @@ const resultMessage =
         </p>
 
       </div>
-            <div className="rounded-lg border border-slate-700 p-4">
+
+
+      <div className="rounded-lg border border-slate-700 p-4">
 
         <h4 className="mb-3 font-medium text-slate-200">
-          {isFinished && testResult === "ok" && (
-  <div className="mb-3 rounded-lg bg-green-900/30 p-3">
-    <p className="font-medium text-green-300">
-      ✅ Feilsøking fullført
-    </p>
 
-    <p className="mt-2 text-slate-300">
-      Alle anbefalte tester er gjennomført.
-    </p>
-  </div>
-)}
+          {isFinished && testResult === "ok" && (
+            <div className="mb-3 rounded-lg bg-green-900/30 p-3">
+
+              <p className="font-medium text-green-300">
+                ✅ Feilsøking fullført
+              </p>
+
+              <p className="mt-2 text-slate-300">
+                Alle anbefalte tester er gjennomført.
+              </p>
+
+            </div>
+          )}
+
           Hvordan gikk testen?
+
         </h4>
+
 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
 
           <button
-  type="button"
-  onClick={handleTestOk}
-  disabled={isFinished && testResult === "ok"}
-  className="w-full rounded-lg bg-green-600 px-4 py-3 font-medium text-white hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50"
->
-  ✔ Test OK
-</button>
+            type="button"
+            onClick={handleTestOk}
+            disabled={isFinished && testResult === "ok"}
+            className="w-full rounded-lg bg-green-600 px-4 py-3 font-medium text-white hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            ✔ Test OK
+          </button>
+
 
           <button
-  type="button"
-  onClick={handleTestFailed}
-  disabled={isFinished && testResult === "ok"}
-  className="w-full rounded-lg bg-red-600 px-4 py-3 font-medium text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
->
-  ✖ Test ikke OK
-</button>
+            type="button"
+            onClick={handleTestFailed}
+            disabled={isFinished && testResult === "ok"}
+            className="w-full rounded-lg bg-red-600 px-4 py-3 font-medium text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            ✖ Test ikke OK
+          </button>
 
         </div>
 
 
         {resultMessage && (
-  <div className="mt-4 rounded-lg bg-blue-900/30 p-3">
-    <p className="font-medium text-blue-300">
-      🤖 Diagnoseforslag
-    </p>
+          <div className="mt-4 rounded-lg bg-blue-900/30 p-3">
 
-    <p className="mt-2 text-slate-300">
-      {resultMessage}
-    </p>
-  </div>
-)}
+            <p className="font-medium text-blue-300">
+              🤖 Diagnoseforslag
+            </p>
+
+            <p className="mt-2 text-slate-300">
+              {resultMessage}
+            </p>
+
+          </div>
+        )}
 
 
         {testResult === "failed" && (
@@ -287,11 +323,12 @@ const resultMessage =
             📋 Feilsøkingshistorikk
           </h4>
 
+
           <ul className="list-disc space-y-1 pl-5 text-slate-300">
 
             {history.map((item, index) => (
-              <li key={`${item}-${index}`}>
-                {item}
+              <li key={index}>
+                {item.text}
               </li>
             ))}
 
@@ -300,15 +337,18 @@ const resultMessage =
         </div>
       )}
 
-{showSummary && (
-  <DiagnosisSummary
-    history={history}
-    faultCode={fault.code}
-  />
-)}
+
+      {showSummary && (
+        <DiagnosisSummary
+          history={history.map((item) => item.text)}
+          faultCode={fault.code}
+        />
+      )}
+
     </div>
   );
 }
+
 
 function Section({
   title,
@@ -323,6 +363,7 @@ function Section({
       <h4 className="mb-2 font-medium">
         {title}
       </h4>
+
 
       <ul className="list-disc space-y-1 pl-5 text-slate-300">
 
