@@ -1,13 +1,16 @@
 "use client";
 
 import { useState } from "react";
+import { liveDataLibrary } from "@/app/data/liveDataLibrary";
 
 type LiveDataInputProps = {
   faultCode: string;
+  liveData: string[];
 };
 
 export default function LiveDataInput({
   faultCode,
+  liveData,
 }: LiveDataInputProps) {
   const [data, setData] = useState({
     maf: "",
@@ -15,6 +18,10 @@ export default function LiveDataInput({
     egrActual: "",
     dpfPressure: "",
   });
+  const liveParameters =
+  liveDataLibrary[
+    faultCode as keyof typeof liveDataLibrary
+  ]?.parameters ?? [];
 
   const [analysis, setAnalysis] = useState("");
 
@@ -59,7 +66,13 @@ export default function LiveDataInput({
     <div className="rounded-lg border border-slate-700 bg-[#0b1c2b] p-4">
 
       <h4 className="font-semibold text-cyan-300">
-        📊 Live-data analyse ({faultCode})
+        📊 Live-data analyse ({faultCode})<ul className="mt-3 list-disc pl-5 text-slate-300">
+  {liveParameters.map((item) => (
+    <li key={item}>
+      {item}
+    </li>
+  ))}
+</ul>
       </h4>
 
       <div className="mt-4 space-y-3">

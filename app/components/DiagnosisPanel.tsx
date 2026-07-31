@@ -299,9 +299,7 @@ const resultMessage =
     faultCode={fault.code}
   />
 )}
-<LiveDataInput
-  faultCode={fault.code}
-/>
+
       <Section
         title="📊 Live-data som bør kontrolleres"
         items={fault.liveData}
