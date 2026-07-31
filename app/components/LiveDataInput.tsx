@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { liveDataLibrary } from "@/app/data/liveDataLibrary";
 import { analyzeLiveData } from "@/lib/liveDataEngine";
-
+import { analyzeLiveData as runLiveDataAnalysis } from "@/lib/liveDataEngine";
 type LiveDataInputProps = {
   faultCode: string;
   liveData: string[];
@@ -37,10 +37,17 @@ export default function LiveDataInput({
 
 
   function analyzeLiveData() {
+    const engineResult = runLiveDataAnalysis(
+  faultCode,
+  data
+);
+
+console.log(engineResult);
 
     const egrRequested = Number(
       data["EGR ønsket verdi"]
     );
+ 
 
     const egrActual = Number(
       data["EGR faktisk verdi"]

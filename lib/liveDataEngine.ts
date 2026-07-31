@@ -14,7 +14,9 @@ type ExistsCheck = {
   message: string;
 };
 
-type LiveDataCheck = DifferenceCheck | ExistsCheck;
+type LiveDataCheck =
+  | DifferenceCheck
+  | ExistsCheck;
 
 export function analyzeLiveData(
   faultCode: string,
@@ -51,5 +53,5 @@ export function analyzeLiveData(
     }
   }
 
-  return "Ingen tydelige avvik funnet i live-data.";
+  return "Ingen tydelige avvik funnet i innlagte verdier.";
 }
