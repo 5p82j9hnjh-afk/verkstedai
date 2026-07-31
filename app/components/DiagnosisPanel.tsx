@@ -5,6 +5,9 @@ import { testSteps } from "@/app/data/testSteps";
 import { getNextRecommendation } from "@/lib/diagnosticEngine";
 import type { DiagnosisResult } from "@/types/diagnosis";
 import DiagnosisSummary from "@/app/components/DiagnosisSummary";
+import LiveDataInput from "@/app/components/LiveDataInput";
+
+
 type DiagnosisPanelProps = {
   diagnosis: DiagnosisResult;
    activeFaultCode: "P0401" | "P2453";
@@ -151,6 +154,9 @@ const resultMessage =
         title="🔍 Vanlige årsaker"
         items={fault.commonCauses}
       />
+      <LiveDataInput
+  faultCode={fault.code}
+/>
 
 
       <div className="rounded-lg border border-slate-700 p-4">
@@ -293,6 +299,9 @@ const resultMessage =
     faultCode={fault.code}
   />
 )}
+<LiveDataInput
+  faultCode={fault.code}
+/>
       <Section
         title="📊 Live-data som bør kontrolleres"
         items={fault.liveData}
