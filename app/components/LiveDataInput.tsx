@@ -12,12 +12,7 @@ export default function LiveDataInput({
   faultCode,
   liveData,
 }: LiveDataInputProps) {
-  const [data, setData] = useState({
-    maf: "",
-    egrRequested: "",
-    egrActual: "",
-    dpfPressure: "",
-  });
+  const [data, setData] = useState<Record<string, string>>({});
   const liveParameters =
   liveDataLibrary[
     faultCode as keyof typeof liveDataLibrary
@@ -33,8 +28,17 @@ export default function LiveDataInput({
       ...prev,
       [field]: value,
     }));
-  }
 
+  }
+function handleLiveDataChange(
+  field: string,
+  value: string
+) {
+  setData((prev) => ({
+    ...prev,
+    [field]: value,
+  }));
+}
   function analyzeLiveData() {
     const egrRequested = Number(data.egrRequested);
     const egrActual = Number(data.egrActual);
@@ -77,52 +81,22 @@ export default function LiveDataInput({
 
       <div className="mt-4 space-y-3">
 
-        <input
-          placeholder="MAF luftmengde"
-          value={data.maf}
-          onChange={(e) =>
-            handleChange("maf", e.target.value)
-          }
-          className="w-full rounded-lg bg-slate-800 p-2"
-        />
+  {liveParameters.map((parameter) => (
+    <input
+      key={parameter}
+      placeholder={parameter}
+      value={data[parameter] ?? ""}
+      onChange={(e) =>
+        handleLiveDataChange(
+          parameter,
+          e.target.value
+        )
+      }
+      className="w-full rounded-lg bg-slate-800 p-2"
+    />
+  ))}
 
-        <input
-          placeholder="EGR ønsket verdi"
-          value={data.egrRequested}
-          onChange={(e) =>
-            handleChange(
-              "egrRequested",
-              e.target.value
-            )
-          }
-          className="w-full rounded-lg bg-slate-800 p-2"
-        />
-
-        <input
-          placeholder="EGR faktisk verdi"
-          value={data.egrActual}
-          onChange={(e) =>
-            handleChange(
-              "egrActual",
-              e.target.value
-            )
-          }
-          className="w-full rounded-lg bg-slate-800 p-2"
-        />
-
-        <input
-          placeholder="DPF differansetrykk"
-          value={data.dpfPressure}
-          onChange={(e) =>
-            handleChange(
-              "dpfPressure",
-              e.target.value
-            )
-          }
-          className="w-full rounded-lg bg-slate-800 p-2"
-        />
-
-      </div>
+</div>
 
       <button
         onClick={analyzeLiveData}
