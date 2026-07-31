@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { testSteps } from "@/app/data/testSteps";
 import { getNextRecommendation } from "@/lib/diagnosticEngine";
 import type { DiagnosisResult } from "@/types/diagnosis";
-
+import DiagnosisSummary from "@/app/components/DiagnosisSummary";
 type DiagnosisPanelProps = {
   diagnosis: DiagnosisResult;
    activeFaultCode: "P0401" | "P2453";
@@ -19,19 +19,27 @@ export default function DiagnosisPanel({
   >(null);
 
   const [history, setHistory] = useState<string[]>([]);
+  const [showSummary, setShowSummary] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
 
   const fault =
     diagnosis.faultLibraryData?.find(
       (item) => item.code === activeFaultCode
     );
-    const steps =
+   const steps =
   testSteps[
     activeFaultCode as keyof typeof testSteps
   ] ?? [];
 
-const activeTestStep = steps[currentStep];
-
+const currentTest = steps[currentStep];
+const isFinished =
+  currentStep >= steps.length - 1;
+const resultMessage =
+  testResult === "ok"
+    ? currentTest?.ok
+    : testResult === "failed"
+    ? currentTest?.failed
+    : null;
   useEffect(() => {
     setTestResult(null);
     setHistory([]);
@@ -78,10 +86,10 @@ const activeTestStep = steps[currentStep];
   function handleTestOk() {
     setTestResult("ok");
 
-    setHistory((prev) => [
-      ...prev,
-      `${activeTitle} → OK`,
-    ]);
+   setHistory((prev) => [
+  ...prev,
+  `${activeTitle} → OK: ${currentTest?.ok ?? ""}`,
+]);
 
     setCurrentStep((prev) =>
       Math.min(
@@ -89,15 +97,18 @@ const activeTestStep = steps[currentStep];
         totalSteps - 1
       )
     );
+    if (currentStep >= totalSteps - 1) {
+  setShowSummary(true);
+}
   }
 
   function handleTestFailed() {
     setTestResult("failed");
 
     setHistory((prev) => [
-      ...prev,
-      `${activeTitle} → Ikke OK`,
-    ]);
+  ...prev,
+  `${activeTitle} → Ikke OK: ${currentTest?.failed ?? ""}`,
+]);
   }
 
   return (
@@ -147,10 +158,18 @@ const activeTestStep = steps[currentStep];
           🧪 Pågående test
         </h4>
 
-        <p className="mt-2 text-xs text-cyan-300">
-          Steg {stepNumber} av {totalSteps}
-        </p>
-
+        <p className="text-slate-300">
+  {currentTest?.title ?? "Ingen test tilgjengelig"}
+</p>
+{currentTest?.instructions && (
+  <ul className="mt-3 list-disc pl-5 text-sm text-slate-300">
+    {currentTest.instructions.map((instruction) => (
+      <li key={instruction}>
+        {instruction}
+      </li>
+    ))}
+  </ul>
+)}
         <p className="mt-3 text-slate-200">
           {activeTitle}
         </p>
@@ -180,43 +199,54 @@ const activeTestStep = steps[currentStep];
             <div className="rounded-lg border border-slate-700 p-4">
 
         <h4 className="mb-3 font-medium text-slate-200">
+          {isFinished && testResult === "ok" && (
+  <div className="mb-3 rounded-lg bg-green-900/30 p-3">
+    <p className="font-medium text-green-300">
+      ✅ Feilsøking fullført
+    </p>
+
+    <p className="mt-2 text-slate-300">
+      Alle anbefalte tester er gjennomført.
+    </p>
+  </div>
+)}
           Hvordan gikk testen?
         </h4>
 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
 
           <button
-            type="button"
-            onClick={handleTestOk}
-            className="w-full rounded-lg bg-green-600 px-4 py-3 font-medium text-white hover:bg-green-700"
-          >
-            ✔ Test OK
-          </button>
+  type="button"
+  onClick={handleTestOk}
+  disabled={isFinished && testResult === "ok"}
+  className="w-full rounded-lg bg-green-600 px-4 py-3 font-medium text-white hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50"
+>
+  ✔ Test OK
+</button>
 
           <button
-            type="button"
-            onClick={handleTestFailed}
-            className="w-full rounded-lg bg-red-600 px-4 py-3 font-medium text-white hover:bg-red-700"
-          >
-            ✖ Test ikke OK
-          </button>
+  type="button"
+  onClick={handleTestFailed}
+  disabled={isFinished && testResult === "ok"}
+  className="w-full rounded-lg bg-red-600 px-4 py-3 font-medium text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+>
+  ✖ Test ikke OK
+</button>
 
         </div>
 
 
-        {testResult === "ok" && (
-          <div className="mt-4 rounded-lg bg-green-900/30 p-3">
+        {resultMessage && (
+  <div className="mt-4 rounded-lg bg-blue-900/30 p-3">
+    <p className="font-medium text-blue-300">
+      🤖 Diagnoseforslag
+    </p>
 
-            <p className="font-medium text-green-300">
-              ✅ Testen var OK
-            </p>
-
-            <p className="mt-2 text-slate-300">
-              Gå videre til neste anbefalte test.
-            </p>
-
-          </div>
-        )}
+    <p className="mt-2 text-slate-300">
+      {resultMessage}
+    </p>
+  </div>
+)}
 
 
         {testResult === "failed" && (
@@ -256,7 +286,18 @@ const activeTestStep = steps[currentStep];
         </div>
       )}
 
-
+{showSummary && (
+  <DiagnosisSummary
+    history={history}
+    faultCode={fault.code}
+  />
+)}
+{showSummary && (
+  <DiagnosisSummary
+    history={history}
+    faultCode={fault.code}
+  />
+)}
       <Section
         title="📊 Live-data som bør kontrolleres"
         items={fault.liveData}
