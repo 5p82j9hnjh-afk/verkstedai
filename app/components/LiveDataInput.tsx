@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { liveDataLibrary } from "@/app/data/liveDataLibrary";
-
+import { liveDataRules } from "@/app/data/liveDataRules";
 type LiveDataInputProps = {
   faultCode: string;
   liveData: string[];
@@ -40,26 +40,39 @@ function handleLiveDataChange(
   }));
 }
   function analyzeLiveData() {
-    const egrRequested = Number(data.egrRequested);
-    const egrActual = Number(data.egrActual);
+    const rules =
+  liveDataRules[
+    faultCode as keyof typeof liveDataRules
+  ];
+    const egrRequested = Number(
+  data["EGR ønsket verdi"]
+);
+
+const egrActual = Number(
+  data["EGR faktisk verdi"]
+);
 
     if (
-      egrRequested &&
-      egrActual &&
-      egrRequested - egrActual > 20
-    ) {
+  faultCode === "P0401" &&
+  egrRequested &&
+  egrActual &&
+  egrRequested - egrActual > 20
+) {
       setAnalysis(
         "⚠️ Stor forskjell mellom EGR ønsket og faktisk verdi. Kontroller EGR-ventil og EGR-kanaler."
       );
       return;
     }
 
-    if (data.dpfPressure) {
-      setAnalysis(
-        "ℹ️ DPF differansetrykk registrert. Kontroller sotmengde og regenerering."
-      );
-      return;
-    }
+    if (
+  faultCode === "P2453" &&
+  data["DPF differansetrykk"]
+) {
+  setAnalysis(
+    "ℹ️ DPF differansetrykk registrert. Kontroller sotmengde, sensor og regenerering."
+  );
+  return;
+}
 
     setAnalysis(
       "✅ Ingen tydelige avvik funnet i innlagte verdier."
