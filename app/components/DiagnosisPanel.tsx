@@ -25,7 +25,7 @@ export default function DiagnosisPanel({
     "ok" | "failed" | null
   >(null);
 
-  const [history, setHistory] = useState<HistoryItem[]>([]);
+ const [history, setHistory] = useState<HistoryItem[]>([]);
   const [showSummary, setShowSummary] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
 
