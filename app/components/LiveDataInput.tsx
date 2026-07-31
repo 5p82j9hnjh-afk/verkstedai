@@ -77,7 +77,11 @@ const egrActual = Number(
     "ℹ️ DPF differansetrykk registrert. Kontroller sotmengde, sensor og regenerering."
   );
   onAnalysisComplete(
-  "ℹ️ DPF differansetrykk registrert. Kontroller sotmengde og regenerering."
+  `📊 Live-data:
+EGR ønsket verdi: ${data["EGR ønsket verdi"]}
+EGR faktisk verdi: ${data["EGR faktisk verdi"]}
+
+⚠️ Stor forskjell mellom EGR ønsket og faktisk verdi. Kontroller EGR-ventil og EGR-kanaler.`
 );
   return;
 }
