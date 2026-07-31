@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { liveDataLibrary } from "@/app/data/liveDataLibrary";
-import { analyzeLiveData } from "@/lib/liveDataEngine";
 import { analyzeLiveData as runLiveDataAnalysis } from "@/lib/liveDataEngine";
 type LiveDataInputProps = {
   faultCode: string;
@@ -36,103 +35,17 @@ export default function LiveDataInput({
   }
 
 
-  function analyzeLiveData() {
-    const engineResult = runLiveDataAnalysis(
-  faultCode,
-  data
-);
+function analyzeLiveData() {
+  const result = runLiveDataAnalysis(
+    faultCode,
+    data
+  );
 
-console.log(engineResult);
+  setAnalysis(result);
 
-    const egrRequested = Number(
-      data["EGR ønsket verdi"]
-    );
- 
+  onAnalysisComplete(result);
 
-    const egrActual = Number(
-      data["EGR faktisk verdi"]
-    );
-
-
-    // P0401 - EGR analyse
-    if (
-      faultCode === "P0401" &&
-      egrRequested &&
-      egrActual &&
-      egrRequested - egrActual > 20
-    ) {
-
-      const result =
-`❌ EGR avvik funnet
-
-EGR ønsket verdi: ${egrRequested}
-EGR faktisk verdi: ${egrActual}
-
-Anbefaling:
-Kontroller EGR-ventil og EGR-kanaler.`;
-
-      setAnalysis(result);
-      onAnalysisComplete(result);
-
-      return;
     }
-
-
-    // P2453 - DPF analyse
-    if (
-      faultCode === "P2453" &&
-      data["DPF differansetrykk"]
-    ) {
-
-      const dpfPressure = Number(
-        data["DPF differansetrykk"]
-      );
-
-
-      if (dpfPressure > 80) {
-
-        const result =
-`❌ DPF avvik funnet
-
-DPF differansetrykk:
-${dpfPressure} mbar
-
-Vurdering:
-Differansetrykket er høyt.
-
-Anbefaling:
-✓ Kontroller DPF-belastning
-✓ Kontroller regenerering
-✓ Kontroller differansetrykksensor`;
-
-        setAnalysis(result);
-        onAnalysisComplete(result);
-
-        return;
-      }
-
-
-      const result =
-`ℹ️ DPF differansetrykk:
-
-${dpfPressure} mbar
-
-Verdien må vurderes sammen med sotmengde og kjøreforhold.`;
-
-      setAnalysis(result);
-      onAnalysisComplete(result);
-
-      return;
-    }
-
-
-    const result =
-"✅ Ingen tydelige avvik funnet i innlagte verdier.";
-
-    setAnalysis(result);
-    onAnalysisComplete(result);
-  }
-
 
   return (
     <div className="rounded-lg border border-slate-700 bg-[#0b1c2b] p-4">
