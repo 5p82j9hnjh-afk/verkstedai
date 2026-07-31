@@ -6,11 +6,13 @@ import { liveDataRules } from "@/app/data/liveDataRules";
 type LiveDataInputProps = {
   faultCode: string;
   liveData: string[];
+  onAnalysisComplete: (result: string) => void;
 };
 
 export default function LiveDataInput({
   faultCode,
   liveData,
+  onAnalysisComplete,
 }: LiveDataInputProps) {
   const [data, setData] = useState<Record<string, string>>({});
   const liveParameters =
@@ -61,6 +63,9 @@ const egrActual = Number(
       setAnalysis(
         "⚠️ Stor forskjell mellom EGR ønsket og faktisk verdi. Kontroller EGR-ventil og EGR-kanaler."
       );
+      onAnalysisComplete(
+  "⚠️ Stor forskjell mellom EGR ønsket og faktisk verdi. Kontroller EGR-ventil og EGR-kanaler."
+);
       return;
     }
 
@@ -71,6 +76,9 @@ const egrActual = Number(
   setAnalysis(
     "ℹ️ DPF differansetrykk registrert. Kontroller sotmengde, sensor og regenerering."
   );
+  onAnalysisComplete(
+  "ℹ️ DPF differansetrykk registrert. Kontroller sotmengde og regenerering."
+);
   return;
 }
 

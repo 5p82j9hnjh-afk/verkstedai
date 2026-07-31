@@ -154,8 +154,15 @@ const resultMessage =
         title="🔍 Vanlige årsaker"
         items={fault.commonCauses}
       />
-      <LiveDataInput
+   <LiveDataInput
   faultCode={fault.code}
+  liveData={fault.liveData}
+  onAnalysisComplete={(result) =>
+    setHistory((prev) => [
+      ...prev,
+      `📊 Live-data analyse → ${result}`,
+    ])
+  }
 />
 
 
@@ -299,16 +306,9 @@ const resultMessage =
     faultCode={fault.code}
   />
 )}
-
-      <Section
-        title="📊 Live-data som bør kontrolleres"
-        items={fault.liveData}
-      />
-
     </div>
   );
 }
-
 
 function Section({
   title,
