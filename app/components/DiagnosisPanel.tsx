@@ -44,6 +44,7 @@ const resultMessage =
     setTestResult(null);
     setHistory([]);
     setCurrentStep(0);
+    setShowSummary(false);
   }, [activeFaultCode]);
 
   if (!fault) {
@@ -97,7 +98,7 @@ const resultMessage =
         totalSteps - 1
       )
     );
-    if (currentStep >= totalSteps - 1) {
+  if (currentStep >= totalSteps - 1 && !showSummary) {
   setShowSummary(true);
 }
   }
@@ -286,12 +287,6 @@ const resultMessage =
         </div>
       )}
 
-{showSummary && (
-  <DiagnosisSummary
-    history={history}
-    faultCode={fault.code}
-  />
-)}
 {showSummary && (
   <DiagnosisSummary
     history={history}

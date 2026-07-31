@@ -7,6 +7,10 @@ export default function DiagnosisSummary({
   history,
   faultCode,
 }: DiagnosisSummaryProps) {
+    const conclusion =
+  history.some((item) => item.includes("Ikke OK"))
+    ? "En feil ble funnet under feilsøkingen. Kontroller komponenten nærmere."
+    : "Alle utførte tester er godkjent. Ingen feil funnet i dette testløpet.";
   return (
     <div className="rounded-lg border border-green-700 bg-green-950/30 p-4">
       <h4 className="font-semibold text-green-300">
@@ -22,7 +26,7 @@ export default function DiagnosisSummary({
       </h5>
 
       <ul className="mt-2 list-disc space-y-1 pl-5 text-slate-300">
-        {history.map((item, index) => (
+        {history.slice(0, 5).map((item, index) => (
           <li key={index}>
             {item}
           </li>
@@ -30,8 +34,8 @@ export default function DiagnosisSummary({
       </ul>
 
       <p className="mt-4 text-slate-300">
-        AI-konklusjon: Testløpet er fullført.
-      </p>
+  AI-konklusjon: {conclusion}
+</p>
     </div>
   );
 }
