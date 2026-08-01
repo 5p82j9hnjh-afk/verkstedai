@@ -1,5 +1,6 @@
 import OpenAI from "openai";
 import { NextResponse } from "next/server";
+import { faultLibrary } from "@/app/data/faultLibrary";
 
 export const runtime = "nodejs";
 
@@ -15,6 +16,24 @@ export async function POST(req: Request) {
     const body = await req.json();
 
     const question = body.question;
+
+    const faultCode =
+      body.faultCode ?? "Ingen feilkode oppgitt";
+
+
+    const fault =
+      faultLibrary[faultCode];
+
+
+    console.log(
+      "FEILKODE FRA APP:",
+      faultCode
+    );
+
+    console.log(
+      "FAULT DATA:",
+      fault
+    );
 
 
     if (!question) {
@@ -40,9 +59,44 @@ export async function POST(req: Request) {
 
           {
             role: "system",
-            content:
-              "Du er VerkstedAI, en ekspert på bildiagnose. Svar kort og praktisk for en mekaniker."
+
+            content: `
+Du er VerkstedAI, en erfaren bildiagnostiker på verksted.
+
+Du skal hjelpe en mekaniker med en konkret feilsak.
+
+Aktiv feilkode:
+${faultCode}
+
+Feilbeskrivelse:
+${fault?.title ?? "Ukjent"}
+
+Berørte systemer:
+${fault?.systems?.join(", ") ?? "Ingen data"}
+
+Symptomer:
+${fault?.symptoms?.join(", ") ?? "Ingen data"}
+
+Vanlige årsaker:
+${fault?.commonCauses?.join(", ") ?? "Ingen data"}
+
+Anbefalte tester:
+${fault?.recommendedTests?.join(", ") ?? "Ingen data"}
+
+Tilgjengelig live-data:
+${fault?.liveData?.join(", ") ?? "Ingen data"}
+
+
+Regler for svar:
+- Svar som en erfaren mekaniker
+- Start med mest sannsynlige årsak
+- Gi konkrete tester i riktig rekkefølge
+- Forklar kort hvorfor testen gjøres
+- Ikke gi generelle OBD-råd
+- Bruk informasjonen over aktivt
+`
           },
+
 
           {
             role: "user",
@@ -64,10 +118,15 @@ export async function POST(req: Request) {
 
   } catch (error) {
 
+    console.error(
+      "CHAT ERROR:",
+      error
+    );
+
+
     return NextResponse.json(
       {
-        error:
-          "AI-kall feilet"
+        error: "AI-kall feilet"
       },
       {
         status: 500

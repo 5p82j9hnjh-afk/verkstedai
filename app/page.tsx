@@ -246,21 +246,27 @@ export default function Home() {
 
           <button
             type="button"
-            onClick={() => {
+           onClick={() => {
 
-              setDiagnosis(
-                demoDiagnosis
-              );
+  setDiagnosis(
+    demoDiagnosis
+  );
 
-              setAnalysis(
-                JSON.stringify(
-                  demoDiagnosis,
-                  null,
-                  2
-                )
-              );
 
-            }}
+  setActiveFaultCode(
+    demoDiagnosis.faultCodes[0].code
+  );
+
+
+  setAnalysis(
+    JSON.stringify(
+      demoDiagnosis,
+      null,
+      2
+    )
+  );
+
+}}
             className="mb-4 w-full rounded-xl bg-blue-600 px-4 py-3 font-semibold"
           >
 
@@ -510,7 +516,9 @@ export default function Home() {
                 </div>
 
               </Panel>
-<AIChatBox />
+<AIChatBox
+  faultCode={activeFaultCode}
+/>
 
 
             </div>

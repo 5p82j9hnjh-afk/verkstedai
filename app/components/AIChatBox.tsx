@@ -8,8 +8,12 @@ declare global {
     webkitSpeechRecognition: any;
   }
 }
-
-export default function AIChatBox() {
+type AIChatBoxProps = {
+  faultCode: string;
+};
+export default function AIChatBox({
+  faultCode,
+}: AIChatBoxProps) {
 
   const [message, setMessage] = useState("");
   const [answer, setAnswer] = useState("");
@@ -36,8 +40,9 @@ export default function AIChatBox() {
           },
 
           body: JSON.stringify({
-            question: message,
-          }),
+  question: message,
+  faultCode: faultCode,
+}),
 
         }
       );
@@ -86,19 +91,26 @@ export default function AIChatBox() {
     setRecognitionInstance(recognition);
 
 
-    recognition.lang = "no-NO";
-    recognition.continuous = false;
-    recognition.interimResults = false;
+   recognition.lang = "nb-NO";
+recognition.continuous = true;
+recognition.interimResults = true;
+recognition.onresult = (event: any) => {
 
+  let text = "";
 
-    recognition.onresult = (event: any) => {
+  for (
+    let i = event.resultIndex;
+    i < event.results.length;
+    i++
+  ) {
 
-      const text =
-        event.results[0][0].transcript;
+    text += event.results[i][0].transcript;
 
-      setMessage(text);
+  }
 
-    };
+  setMessage(text);
+
+};
 
 
     recognition.onend = () => {
