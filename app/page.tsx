@@ -28,6 +28,7 @@ const menuItems = [
 export default function Home() {
 
   const [activeFaultCode, setActiveFaultCode] = useState("");
+  const [registration, setRegistration] = useState("");
   const [currentTestStep, setCurrentTestStep] = useState(0);
 
   const [selectedImage, setSelectedImage] =
@@ -47,12 +48,7 @@ export default function Home() {
     );
 
 
-  async function analyzeImage() {
-
-    if (!selectedImage) {
-      setAnalysis("Velg et bilde først.");
-      return;
-    }
+  async function analyzeImage(file: File) {
 
 
     setIsAnalyzing(true);
@@ -64,9 +60,9 @@ export default function Home() {
       const formData = new FormData();
 
       formData.append(
-        "image",
-        selectedImage
-      );
+  "image",
+  file
+);
 
 
       const response = await fetch(
@@ -127,13 +123,68 @@ export default function Home() {
 
         <aside className="hidden md:flex w-56 shrink-0 flex-col border-r border-slate-700/70 bg-[#071a29] p-4">
 
-          <h1 className="mb-6 text-xl font-semibold">
-            🔧 VerkstedAI
-          </h1>
+          <h1 className="mb-4 text-xl font-semibold">
+  🔧 VerkstedAI
+</h1>
 
 
-          <nav className="space-y-1">
+<button
+  type="button"
+  onClick={() => {
 
+    setDiagnosis(demoDiagnosis);
+
+    setActiveFaultCode(
+      demoDiagnosis.faultCodes[0].code
+    );
+
+    setAnalysis(
+      JSON.stringify(
+        demoDiagnosis,
+        null,
+        2
+      )
+    );
+
+  }}
+ className="mb-3 w-full rounded-lg bg-red-600 px-3 py-2 text-sm font-semibold hover:bg-red-500"
+>
+  ▶ Vis demo
+</button>
+
+
+<div className="mb-5 flex gap-2">
+
+  <label
+    htmlFor="image-upload"
+    className="flex-1 cursor-pointer rounded-lg bg-blue-600 px-2 py-2 text-center text-xs font-semibold hover:bg-blue-500"
+  >
+    📷 Legg til
+  </label>
+
+
+</div>
+<input
+  id="image-upload"
+  type="file"
+  accept="image/*"
+  capture="environment"
+  className="hidden"
+  onChange={(e) => {
+
+    const file = e.target.files?.[0];
+
+    if (file) {
+
+      setSelectedImage(file);
+
+      analyzeImage(file);
+
+    }
+
+  }}
+/>
+<nav className="space-y-1">
             {menuItems.map(
               ([icon, label]) => (
 
@@ -199,114 +250,40 @@ export default function Home() {
 
           <header className="mb-4 flex items-center justify-between">
 
-            <div>
+  <div>
 
-              <h2 className="text-xl font-semibold">
-                Feilsøkingssak #2024-0512
-              </h2>
+    <h2 className="text-xl font-semibold">
+      Feilsøkingssak #2024-0512
+    </h2>
 
-              <p className="text-xs text-slate-400">
-                Volkswagen Golf · 24. mai 2024
-              </p>
+    <p className="text-xs text-slate-400">
+      Volkswagen Golf · 24. mai 2024
+    </p>
 
-            </div>
-
-
-          </header>
-                    <label
-            htmlFor="image-upload"
-            className="mb-4 block w-full cursor-pointer rounded-xl bg-blue-600 px-6 py-5 shadow-lg hover:bg-blue-500"
-          >
-
-            <div className="text-xl font-semibold">
-              📷 Legg til feilkoder / Ta bilde
-            </div>
-
-            <div className="mt-1 text-sm text-blue-100">
-              Ta bilde av diagnoseskjermen – AI analyserer automatisk
-            </div>
-
-          </label>
+  </div>
 
 
-          <input
-            id="image-upload"
-            type="file"
-            accept="image/*"
-            capture="environment"
-            className="hidden"
-            onChange={(e) => {
+  <div className="rounded-xl border border-slate-700 bg-[#0b1c2b] p-3">
 
-              const file =
-                e.target.files?.[0];
-
-              if (file) {
-                setSelectedImage(file);
-              }
-
-            }}
-          />
+  <p className="mb-2 text-sm font-semibold text-slate-300">
+  Reg.nr
+</p>
 
 
-          {selectedImage && (
+<input
+  value={registration}
+  onChange={(e) =>
+    setRegistration(e.target.value)
+  }
+ className="w-36 rounded-lg bg-white px-3 py-2 text-lg font-bold text-black placeholder:text-slate-500"
+/>
 
-            <div className="mb-4 rounded-lg border border-slate-700 bg-slate-900 p-3 text-sm">
-
-              Valgt bilde:
-              {" "}
-              {selectedImage.name}
-
-            </div>
-
-          )}
+</div>
 
 
+</header>
+                    
 
-          <button
-            type="button"
-            onClick={analyzeImage}
-            disabled={!selectedImage || isAnalyzing}
-            className="mb-4 w-full rounded-xl bg-emerald-600 px-4 py-3 font-semibold disabled:opacity-50"
-          >
-
-            {
-              isAnalyzing
-                ? "Analyserer bilde..."
-                : "Analyser bilde"
-            }
-
-          </button>
-
-
-
-          <button
-            type="button"
-           onClick={() => {
-
-  setDiagnosis(
-    demoDiagnosis
-  );
-
-
-  setActiveFaultCode(
-    demoDiagnosis.faultCodes[0].code
-  );
-
-
-  setAnalysis(
-    JSON.stringify(
-      demoDiagnosis,
-      null,
-      2
-    )
-  );
-
-}}
-            className="mb-4 w-full rounded-xl bg-blue-600 px-4 py-3 font-semibold"
-          >
-
-            Vis demo
-            </button>
 <div className="mb-4 grid grid-cols-[1fr] gap-4">
 
             <div className="rounded-xl border border-slate-700 bg-[#0b1c2b] p-4">
@@ -319,9 +296,9 @@ export default function Home() {
                 2018 · 2.0 TDI · 110 kW
               </p>
 
-              <p className="text-sm text-slate-400">
-                Reg.nr: AB 12345
-              </p>
+              <p className="mb-2 text-lg font-semibold text-slate-200">
+  Reg.nr
+</p>
 
               <p className="text-sm text-slate-400">
                 Km: 142 300 km
@@ -528,16 +505,7 @@ export default function Home() {
           <div className="grid grid-cols-[220px_minmax(260px,1fr)_minmax(260px,1fr)] gap-4">
 <div className="space-y-4">
 
-  <Panel title="Notater">
-
-    <p className="text-sm text-slate-300">
-      Kunden opplyser at problemet startet gradvis.
-    </p>
-
-  </Panel>
-
-          
-        
+         
               <Panel title="Bilder og data">
 
                 <div className="grid grid-cols-3 gap-2">
@@ -586,37 +554,6 @@ export default function Home() {
     currentTestStep={currentTestStep}
     setCurrentTestStep={setCurrentTestStep}
   />
-)}
-
-                
-
-              /
-{activeFaultCode && (
-  <div className="rounded-xl border border-emerald-700 bg-emerald-950/30 p-4">
-
-    <h3 className="font-semibold text-emerald-300">
-      ✦ AI: Felles rotårsak oppdaget
-    </h3>
-
-    <p className="mt-2 text-sm text-slate-300">
-      Analyse for {activeFaultCode}
-    </p>
-
-    <p className="mt-3 text-sm text-slate-200">
-      <strong>
-        Sannsynlig rotårsak:
-      </strong>
-
-      {" "}
-
-      {rootCauseLibrary[
-        activeFaultCode as keyof typeof rootCauseLibrary
-      ]?.cause ??
-        "Ingen rotårsak tilgjengelig."}
-
-    </p>
-
-  </div>
 )}
 
 
