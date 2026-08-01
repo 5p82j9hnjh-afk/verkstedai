@@ -55,14 +55,6 @@ function analyzeLiveData() {
       </h4>
 
 
-      <ul className="mt-3 list-disc pl-5 text-slate-300">
-        {liveParameters.map((item) => (
-          <li key={item}>
-            {item}
-          </li>
-        ))}
-      </ul>
-
 
       <div className="mt-4 space-y-3">
 

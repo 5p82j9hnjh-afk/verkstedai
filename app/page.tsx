@@ -10,7 +10,7 @@ import Panel from "./components/Panel";
 import Tab from "./components/Tab";
 
 import { rootCauseLibrary } from "./data/rootCauseLibrary";
-
+import AIChatBox from "./components/AIChatBox";
 
 const menuItems = [
   ["⌂", "Oversikt"],
@@ -510,44 +510,10 @@ export default function Home() {
                 </div>
 
               </Panel>
-
-
-
-
-              <div className="rounded-xl border border-emerald-700 bg-emerald-950/30 p-4">
-
-                <h3 className="font-semibold text-emerald-300">
-                  ✦ AI: Felles rotårsak oppdaget
-                </h3>
-
-
-                <p className="mt-2 text-sm text-slate-300">
-                  Analyse for {activeFaultCode}
-                </p>
-
-
-                <p className="mt-3 text-sm text-slate-200">
-
-                  <strong>
-                    Sannsynlig rotårsak:
-                  </strong>
-
-                  {" "}
-
-                  {rootCauseLibrary[
-                    activeFaultCode as keyof typeof rootCauseLibrary
-                  ]?.cause ??
-                    "Ingen rotårsak tilgjengelig."}
-
-                </p>
-
-              </div>
+<AIChatBox />
 
 
             </div>
-
-
-
 
 
             <div className="space-y-4">
@@ -583,7 +549,31 @@ export default function Home() {
                 }
 
               />
+<div className="rounded-xl border border-emerald-700 bg-emerald-950/30 p-4">
 
+  <h3 className="font-semibold text-emerald-300">
+    ✦ AI: Felles rotårsak oppdaget
+  </h3>
+
+  <p className="mt-2 text-sm text-slate-300">
+    Analyse for {activeFaultCode}
+  </p>
+
+  <p className="mt-3 text-sm text-slate-200">
+    <strong>
+      Sannsynlig rotårsak:
+    </strong>
+
+    {" "}
+
+    {rootCauseLibrary[
+      activeFaultCode as keyof typeof rootCauseLibrary
+    ]?.cause ??
+      "Ingen rotårsak tilgjengelig."}
+
+  </p>
+
+</div>
 
 
             </div>
