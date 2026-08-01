@@ -152,12 +152,6 @@ export default function DiagnosisPanel({
           <p>{fault.severity}</p>
         </div>
 
-        <div>
-          <p className="text-xs text-slate-400">
-            Estimert reparasjonstid
-          </p>
-          <p>{fault.estimatedRepairTime}</p>
-        </div>
 
       </div>
 
