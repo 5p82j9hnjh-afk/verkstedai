@@ -93,6 +93,7 @@ async function analyzeImage(file: File) {
 
     const data =
       await response.json();
+      console.log("HELE AI SVARET:", data);
       
       
     if (!response.ok) {
