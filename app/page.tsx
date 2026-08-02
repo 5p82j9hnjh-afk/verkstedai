@@ -91,13 +91,10 @@ async function analyzeImage(file: File) {
       }
     );
 
-
-
     const data =
       await response.json();
-
-
-
+      
+      
     if (!response.ok) {
 
       throw new Error(
@@ -270,12 +267,12 @@ e.target.files?.[0];
 
 if(file){
 
+
 setSelectedImage(file);
 
 analyzeImage(file);
 
 }
-
 
 }}
 
