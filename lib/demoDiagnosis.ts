@@ -40,7 +40,10 @@ export const demoDiagnosis = {
     BoostPressure: "1.3 bar",
     FuelPressure: "320 bar",
   },
-
+symptoms: [
+  "Motoreffekt mangler",
+  "Feillampen lyser"
+],
   likelyCauses: [
     "EGR-ventil blokkert",
     "Defekt differansetrykksensor",

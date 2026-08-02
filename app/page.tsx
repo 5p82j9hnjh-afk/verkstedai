@@ -107,26 +107,69 @@ async function analyzeImage(file: File) {
 
 
 
-    setDiagnosis(
-      data.diagnosis
-    );
+  const fixedDiagnosis = {
+  ...data.diagnosis,
 
+  symptoms: data.diagnosis.symptoms || [],
+
+  faultCodes: data.diagnosis.faultCodes.map(
+    (fault:any) => {
+
+      const libraryFault =
+        data.diagnosis.faultLibraryData?.find(
+          (item:any) =>
+            item.code === fault.code
+        );
+
+
+      if (
+        libraryFault &&
+        (
+          fault.description === "Usikker" ||
+          fault.description === "uklar" ||
+          fault.description === ""
+        )
+      ) {
+
+        return {
+          ...fault,
+          description:
+            libraryFault.title
+        };
+
+      }
+
+
+      return fault;
+
+    }
+  )
+};
+
+
+setDiagnosis(
+  fixedDiagnosis
+);
 
 
     setActiveCase({
 
       created: new Date(),
 
-      vehicle: {
-        model:
-          "Volkswagen Golf",
+      
+        vehicle: {
+  model:
+    `${fixedDiagnosis.vehicle?.make || ""} ${fixedDiagnosis.vehicle?.model || ""}`,
 
-        registration:
-          registration,
-      },
+  engine:
+    fixedDiagnosis.vehicle?.engine || "",
+
+  registration:
+    registration,
+},
 
       faultCodes:
-        data.diagnosis,
+  fixedDiagnosis.faultCodes,
 
       status:
         "Pågående",
@@ -136,12 +179,12 @@ async function analyzeImage(file: File) {
 
 
     setAnalysis(
-      JSON.stringify(
-        data.diagnosis,
-        null,
-        2
-      )
-    );
+  JSON.stringify(
+    fixedDiagnosis,
+    null,
+    2
+  )
+);
 
 
 
@@ -316,7 +359,32 @@ className="flex w-full items-center gap-3 rounded-lg px-3 py-3 text-left text-sm
 
 </nav>
 
+<div className="mt-5 rounded-xl border border-slate-700 bg-[#0b1c2b] p-3">
 
+<h3 className="mb-2 text-sm font-semibold text-slate-200">
+📝 Notater
+</h3>
+
+<textarea
+
+placeholder="Skriv kundens opplysninger eller egne notater..."
+
+className="h-32 w-full rounded-lg bg-slate-900 p-2 text-sm text-slate-200 outline-none"
+
+/>
+
+</div>
+{activeFaultCode && (
+
+  <div className="mt-4">
+
+    <AIChatBox
+      faultCode={activeFaultCode}
+    />
+
+  </div>
+
+)}
 
 </aside>
       <section className="min-w-0 flex-1 p-4">
@@ -328,12 +396,13 @@ className="flex w-full items-center gap-3 rounded-lg px-3 py-3 text-left text-sm
 <div>
 
 <h3 className="text-lg font-semibold">
-Volkswagen Golf
+{diagnosis?.vehicle?.make || "Ukjent merke"}{" "}
+{diagnosis?.vehicle?.model || ""}
 </h3>
 
 
 <p className="text-sm text-slate-300">
-2018 · 2.0 TDI · 110 kW
+{diagnosis?.vehicle?.engine || "Motor ikke funnet"}
 </p>
 
 
@@ -343,7 +412,6 @@ Km: 142 300 km
 
 
 </div>
-
 
 
 <div className="rounded-xl border border-slate-700 bg-[#071a29] p-3">
@@ -656,17 +724,6 @@ setCurrentTestStep(0);
 <div className="space-y-4">
 
 
-{activeFaultCode && (
-
-<AIChatBox
-
-faultCode={activeFaultCode}
-
-/>
-
-)}
-
-
 </div>
 
 
@@ -720,33 +777,6 @@ setCurrentTestStep={setCurrentTestStep}
 
 
 </div>
-
-
-
-
-
-
-<div className="mt-4 rounded-xl border border-slate-700 bg-[#0b1c2b] p-4">
-
-
-<h3 className="mb-2 text-lg font-semibold">
-
-Notater
-
-</h3>
-
-
-<textarea
-
-placeholder="Skriv kundens opplysninger eller egne notater..."
-
-className="h-32 w-full rounded-lg bg-slate-900 p-3 text-sm text-slate-200 outline-none"
-
-/>
-
-
-</div>
-
 
 
 

@@ -8,7 +8,8 @@ export const runtime = "nodejs";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
-  timeout: 120000,
+  timeout: 180000,
+  maxRetries: 5,
 });
 
 

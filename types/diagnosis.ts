@@ -29,6 +29,7 @@ export interface DiagnosisResult {
   faultCodes: FaultCode[];
   freezeFrame: Record<string, string | number | null>;
   liveData: Record<string, string | number | null>;
+  symptoms: string[];
   likelyCauses: string[];
   nextTests: string[];
   notes: string;

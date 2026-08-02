@@ -58,18 +58,40 @@ export default function DiagnosisPanel({
   }, [activeFaultCode]);
 
   if (!fault) {
-    return (
-      <div className="rounded-xl border border-slate-700 bg-[#0b1c2b] p-4">
-        <h3 className="font-semibold">
-          ✦ AI-analyse
-        </h3>
-
-        <p className="mt-3 text-slate-300">
-          Ingen analysedata tilgjengelig.
-        </p>
-      </div>
+  const aiFault =
+    diagnosis.faultCodes.find(
+      (item) => item.code === activeFaultCode
     );
-  }
+
+  return (
+    <div className="rounded-xl border border-slate-700 bg-[#0b1c2b] p-4">
+
+      <h3 className="text-xl font-semibold">
+        {aiFault?.code} – {aiFault?.description}
+      </h3>
+
+
+      <Section
+        title="🚨 Symptomer"
+        items={diagnosis.symptoms || []}
+      />
+
+
+      <Section
+        title="🔍 Mest sannsynlige årsaker"
+        items={diagnosis.likelyCauses || []}
+      />
+
+
+      <Section
+        title="🧪 Anbefalte tester"
+        items={diagnosis.nextTests || []}
+      />
+
+
+    </div>
+  );
+}
 
   const currentTests =
     testSteps[
