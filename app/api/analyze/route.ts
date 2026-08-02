@@ -9,14 +9,12 @@ export const runtime = "nodejs";
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
   timeout: 120000,
-  maxRetries: 2,
 });
 
 
 export async function POST(request: Request) {
 
   try {
-
 
     const formData =
       await request.formData();
@@ -56,12 +54,12 @@ export async function POST(request: Request) {
     );
 
 
-   if (bytes.byteLength > 3000000) {
+    if (bytes.byteLength > 3000000) {
 
       return NextResponse.json(
         {
           error:
-          "Bildet er for stort. Maks 2MB."
+          "Bildet er for stort. Maks 3MB."
         },
         {
           status: 400
@@ -91,8 +89,7 @@ export async function POST(request: Request) {
     );
 
 
-    let response:
-      OpenAI.Chat.Completions.ChatCompletion | null = null;
+    let response: any = null;
 
 
 
@@ -102,9 +99,7 @@ export async function POST(request: Request) {
       attempt++
     ) {
 
-
       try {
-
 
         console.log(
           "AI FORSØK:",
@@ -113,48 +108,43 @@ export async function POST(request: Request) {
 
 
         response =
-          await openai.chat.completions.create({
+  await openai.chat.completions.create({
 
-            model: "gpt-4o-mini",
+    model: "gpt-4o-mini",
 
-            temperature: 0,
+    temperature: 0,
 
-            max_tokens: 1200,
+    max_tokens: 1200,
 
+    messages: [
 
-            messages: [
+      {
+        role: "user",
 
-              {
-                role: "user",
+        content: [
 
-                content: [
+          {
+            type: "text",
 
-                  {
-                    type: "text",
+            text: diagnosisPrompt
+          },
 
-                    text: diagnosisPrompt
+          {
+            type: "image_url",
 
-                  },
+            image_url: {
+              url: imageUrl
+            }
 
+          }
 
-                  {
-                    type: "image_url",
+        ]
 
-                    image_url: {
+      }
 
-                      url: imageUrl
+    ]
 
-                    }
-
-                  }
-
-                ]
-
-              }
-
-            ]
-
-          });
+  });
 
 
         break;
@@ -181,7 +171,6 @@ export async function POST(request: Request) {
           setTimeout(resolve, 2000)
         );
 
-
       }
 
     }
@@ -199,9 +188,9 @@ export async function POST(request: Request) {
 
 
     const rawResult =
-      response.choices[0]
-      ?.message
-      ?.content || "{}";
+  response.choices[0]
+  ?.message
+  ?.content || "{}";
 
 
 
@@ -218,7 +207,6 @@ export async function POST(request: Request) {
 
 
     try {
-
 
       diagnosis =
         JSON.parse(rawResult);
@@ -246,13 +234,9 @@ export async function POST(request: Request) {
 
     const faultCodes =
       Array.isArray(diagnosis.faultCodes)
-
       ?
-
       diagnosis.faultCodes
-
       :
-
       [];
 
 
@@ -321,7 +305,7 @@ export async function POST(request: Request) {
         ...(diagnosis.likelyCauses || []),
 
         ...libraryMatches.flatMap(
-          (fault:any) =>
+          (fault:any)=>
           fault.commonCauses || []
         )
 
@@ -338,7 +322,7 @@ export async function POST(request: Request) {
         ...(diagnosis.nextTests || []),
 
         ...libraryMatches.flatMap(
-          (fault:any) =>
+          (fault:any)=>
           fault.recommendedTests || []
         )
 
@@ -357,8 +341,10 @@ export async function POST(request: Request) {
         likelyCauses:
         combinedCauses,
 
+
         nextTests:
         combinedTests,
+
 
         faultLibraryData:
         libraryMatches

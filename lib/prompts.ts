@@ -61,13 +61,9 @@ Bruk nøyaktig dette formatet:
 
 
 Regler:
-
-- Ta kun med feilkoder som faktisk kan leses fra bildet.
-- Ikke finn på feilkoder.
-- Hvis informasjon ikke er synlig, bruk tom tekst.
-- Prioriter de mest sannsynlige årsakene først.
-- Gi tester som en erfaren mekaniker ville utført.
-- Start med enkle kontroller før avanserte tester.
-- Tenk verksteddiagnose, ikke generell informasjon.
-- Bruk norsk språk i beskrivelser og tester.
+- Ikke finn på feilkoder som ikke står på bildet.
+- Les alle tall i feilkoder ekstremt nøye.
+- Ikke endre eller gjett siffer.
+- Hvis en feilkode er uklar, skriv den som usikker.
+- Svar alltid med gyldig JSON.
 `;
