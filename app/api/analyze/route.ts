@@ -1,12 +1,15 @@
 import OpenAI from "openai";
 import { NextResponse } from "next/server";
+import { faultLibrary } from "@/app/data/faultLibrary";
+import { diagnosisPrompt } from "@/lib/prompts";
 
 export const runtime = "nodejs";
 
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
-  timeout: 60000,
+  timeout: 120000,
+  maxRetries: 2,
 });
 
 
@@ -27,10 +30,10 @@ export async function POST(request: Request) {
 
       return NextResponse.json(
         {
-          error:"Ingen bilde mottatt"
+          error: "Ingen bilde mottatt"
         },
         {
-          status:400
+          status: 400
         }
       );
 
@@ -47,103 +50,326 @@ export async function POST(request: Request) {
     );
 
 
+    console.log(
+      "BILDE TYPE:",
+      image.type
+    );
+
+
+   if (bytes.byteLength > 3000000) {
+
+      return NextResponse.json(
+        {
+          error:
+          "Bildet er for stort. Maks 2MB."
+        },
+        {
+          status: 400
+        }
+      );
+
+    }
+
+
     const base64 =
       Buffer.from(bytes)
       .toString("base64");
+
+
+    console.log(
+      "BASE64 LENGDE:",
+      base64.length
+    );
 
 
     const imageUrl =
       `data:${image.type};base64,${base64}`;
 
 
-
-    const response =
-      await openai.chat.completions.create({
-
-        model:"gpt-4.1-mini",
-
-        max_tokens:500,
+    console.log(
+      "SENDER BILDE TIL AI"
+    );
 
 
-        messages:[
+    let response:
+      OpenAI.Chat.Completions.ChatCompletion | null = null;
 
-          {
 
-            role:"user",
 
-            content:[
+    for (
+      let attempt = 1;
+      attempt <= 3;
+      attempt++
+    ) {
 
+
+      try {
+
+
+        console.log(
+          "AI FORSØK:",
+          attempt
+        );
+
+
+        response =
+          await openai.chat.completions.create({
+
+            model: "gpt-4o-mini",
+
+            temperature: 0,
+
+            max_tokens: 1200,
+
+
+            messages: [
 
               {
-                type:"text",
+                role: "user",
 
-                text:
-                `
-Analyser dette bildet av en bildiagnose.
+                content: [
 
-Finn:
-- bilmodell hvis synlig
-- feilkoder
-- kort beskrivelse
+                  {
+                    type: "text",
 
-Svar vanlig tekst.
-`
-              },
+                    text: diagnosisPrompt
+
+                  },
 
 
-              {
+                  {
+                    type: "image_url",
 
-                type:"image_url",
+                    image_url: {
 
-                image_url:{
+                      url: imageUrl
 
-                  url:imageUrl,
+                    }
 
-                  detail:"low"
+                  }
 
-                }
+                ]
 
               }
 
-
             ]
 
-          }
+          });
 
 
-        ]
+        break;
 
 
-      });
+      } catch(error) {
+
+
+        console.log(
+          "AI FEIL FORSØK:",
+          attempt
+        );
+
+
+        if (attempt === 3) {
+
+          throw error;
+
+        }
+
+
+        await new Promise(
+          resolve =>
+          setTimeout(resolve, 2000)
+        );
+
+
+      }
+
+    }
 
 
 
-    const result =
+    if (!response) {
+
+      throw new Error(
+        "Ingen AI respons"
+      );
+
+    }
+
+
+
+    const rawResult =
       response.choices[0]
-      .message
-      .content || "";
+      ?.message
+      ?.content || "{}";
 
 
 
     console.log(
-      "AI RESULTAT:"
+      "AI SVAR:"
     );
 
-    console.log(result);
+
+    console.log(rawResult);
+
+
+
+    let diagnosis;
+
+
+    try {
+
+
+      diagnosis =
+        JSON.parse(rawResult);
+
+
+    } catch {
+
+
+      return NextResponse.json(
+        {
+          error:
+          "AI returnerte ugyldig JSON",
+
+          raw:
+          rawResult
+        },
+        {
+          status: 500
+        }
+      );
+
+    }
+
+
+
+    const faultCodes =
+      Array.isArray(diagnosis.faultCodes)
+
+      ?
+
+      diagnosis.faultCodes
+
+      :
+
+      [];
+
+
+
+    const libraryMatches =
+
+      faultCodes
+
+      .map((fault:any)=>{
+
+
+        const code =
+
+          typeof fault === "string"
+
+          ?
+
+          fault.toUpperCase()
+
+          :
+
+          fault.code?.toUpperCase();
+
+
+
+        if (!code) {
+
+          return null;
+
+        }
+
+
+
+        const data =
+          faultLibrary[code];
+
+
+
+        if (!data) {
+
+          return null;
+
+        }
+
+
+
+        return {
+
+          code,
+
+          ...data
+
+        };
+
+
+      })
+
+      .filter(Boolean);
+
+
+
+    const combinedCauses = [
+
+      ...new Set([
+
+        ...(diagnosis.likelyCauses || []),
+
+        ...libraryMatches.flatMap(
+          (fault:any) =>
+          fault.commonCauses || []
+        )
+
+      ])
+
+    ];
+
+
+
+    const combinedTests = [
+
+      ...new Set([
+
+        ...(diagnosis.nextTests || []),
+
+        ...libraryMatches.flatMap(
+          (fault:any) =>
+          fault.recommendedTests || []
+        )
+
+      ])
+
+    ];
 
 
 
     return NextResponse.json({
 
-      result
+      diagnosis: {
+
+        ...diagnosis,
+
+        likelyCauses:
+        combinedCauses,
+
+        nextTests:
+        combinedTests,
+
+        faultLibraryData:
+        libraryMatches
+
+      }
 
     });
 
 
 
-  }
-
-  catch(error){
+  } catch(error) {
 
 
     console.error(
@@ -153,19 +379,16 @@ Svar vanlig tekst.
 
 
     return NextResponse.json(
-
       {
         error:
         "Bildeanalyse feilet"
       },
-
       {
-        status:500
+        status: 500
       }
-
     );
 
-  }
 
+  }
 
 }
