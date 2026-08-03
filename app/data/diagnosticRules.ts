@@ -10,4 +10,10 @@ export const diagnosticRules = {
     ok: "Neste test: Kontroller dieselpartikkelfilteret (DPF).",
     failed: "Sannsynlig feil: Differansetrykksensoren er defekt.",
   },
+
+P2121: {
+  start: "Start med å kontrollere gasspjeldsensoren.",
+  ok: "Kontroller signalverdier og ledningsnett.",
+  failed: "Sjekk sensor og kabling.",
+ },
 };

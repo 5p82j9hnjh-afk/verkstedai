@@ -1,17 +1,30 @@
 export const diagnosticProcedures = {
   P0401: [
     {
-      id: 1,
-      title: "Kontroller EGR-ventil",
-      description:
-        "Aktiver EGR-ventilen med diagnoseverktøy og kontroller at den beveger seg normalt.",
-    },
+
+  id: 1,
+  title: "Kontroller EGR-ventil",
+  description:
+    "Aktiver EGR-ventilen med diagnoseverktøy og kontroller at den beveger seg normalt.",
+
+  ok:
+    "EGR-ventilen fungerer. Gå videre til kontroll av EGR-kanaler.",
+
+  failed:
+    "EGR-ventilen reagerer ikke. Kontroller strømforsyning, jord, styresignal og mekanisk funksjon.",
+},
     {
-      id: 2,
-      title: "Kontroller EGR-kanaler",
-      description:
-        "Kontroller kanalene for sot og blokkering.",
-    },
+  id: 2,
+  title: "Kontroller EGR-kanaler",
+  description:
+    "Kontroller kanalene for sot og blokkering.",
+
+  ok:
+    "EGR-kanaler er åpne. Fortsett til neste kontroll.",
+
+  failed:
+    "Blokkering funnet. Rengjør EGR-kanaler og utfør ny funksjonstest.",
+},
     {
       id: 3,
       title: "Kontroller differansetrykksensor",
@@ -56,6 +69,48 @@ export const diagnosticProcedures = {
       title: "Kontroller turbolader",
       description:
         "Sjekk slakk i aksling og eventuelle skader på turbinen.",
+    },
+  ],
+    P2453: [
+    {
+      id: 1,
+      title: "Kontroller differansetrykksensor",
+      description:
+        "Kontroller sensorverdier, slanger og ledningsnett.",
+    },
+    {
+      id: 2,
+      title: "Kontroller DPF trykkverdier",
+      description:
+        "Sammenlign differansetrykk før og etter filter.",
+    },
+    {
+      id: 3,
+      title: "Kontroller ledningsnett",
+      description:
+        "Kontroller strømforsyning, jord og signal fra sensor.",
+    },
+  ],
+
+
+  P2121: [
+    {
+      id: 1,
+      title: "Kontroller gasspjeldsensor",
+      description:
+        "Kontroller signal, strømforsyning og jord til sensor.",
+    },
+    {
+      id: 2,
+      title: "Sammenlign sensorsignaler",
+      description:
+        "Kontroller at sensorverdiene følger hverandre korrekt.",
+    },
+    {
+      id: 3,
+      title: "Kontroller ledningsnett",
+      description:
+        "Kontroller kontakt, ledninger og eventuelle brudd.",
     },
   ],
 };

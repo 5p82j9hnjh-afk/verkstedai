@@ -13,22 +13,30 @@ import AIChatBox from "./components/AIChatBox";
 
 const menuItems = [
   ["✓", "Avslutt sak"],
-  ["⬡", "Teknisk info"],
   ["▤", "Rapporter"],
 ];
-
 
 export default function Home() {
 
 
   const [activeFaultCode, setActiveFaultCode] =
     useState("");
-
+    
+const [expandedFaultCode, setExpandedFaultCode] =
+  useState("");
   const [registration, setRegistration] =
     useState("");
 
-  const [currentTestStep, setCurrentTestStep] =
-    useState(0);
+  const [testStepByFault, setTestStepByFault] =
+  useState<Record<string, number>>({});
+  const [testHistory, setTestHistory] = useState<
+  {
+    faultCode: string;
+    status: string;
+    title: string;
+    message: string;
+  }[]
+>([]);
 
 
   const [selectedImage, setSelectedImage] =
@@ -49,15 +57,23 @@ export default function Home() {
 
   const [isAnalyzing, setIsAnalyzing] =
     useState(false);
+const [isListening, setIsListening] =
+  useState(false);
 
+const [recognitionInstance, setRecognitionInstance] =
+  useState<any>(null);
 
 
   const currentFault =
-    diagnosis?.faultLibraryData?.find(
-      (fault) =>
-        fault.code === activeFaultCode
-    );
-
+  diagnosis?.faultLibraryData?.find(
+    (fault) =>
+      fault.code === activeFaultCode
+  )
+  ||
+  diagnosis?.faultCodes?.find(
+    (fault) =>
+      fault.code === activeFaultCode
+  );
 
 
 
@@ -224,8 +240,11 @@ return (
 
 <aside className="hidden md:flex w-56 shrink-0 flex-col border-r border-slate-700/70 bg-[#071a29] p-4">
 
+<div className="mb-2">
 
-
+  <h1 className="text-2xl font-bold text-blue-400">
+    VerkstedAI
+  </h1>
 <button
 
 type="button"
@@ -236,11 +255,9 @@ setDiagnosis(
   demoDiagnosis
 );
 
-
 setActiveFaultCode(
   demoDiagnosis.faultCodes[0].code
 );
-
 
 setAnalysis(
   JSON.stringify(
@@ -250,25 +267,22 @@ setAnalysis(
   )
 );
 
-
 }}
 
-className="mb-3 w-full rounded-lg bg-red-600 px-3 py-2 text-sm font-semibold hover:bg-red-500"
+className="mb-4 text-left text-xs text-slate-400 hover:text-blue-400"
 
 >
 
-▶ Vis demo
+▶ Demo
 
 </button>
-
-
 
 
 <label
 
 htmlFor="image-upload"
 
-className={`cursor-pointer rounded-lg px-3 py-3 text-center text-sm font-semibold ${
+className={`mt-2 block cursor-pointer rounded-lg px-3 py-3 text-center text-sm font-semibold ${
 activeCase
 ?
 "bg-emerald-600"
@@ -286,6 +300,7 @@ activeCase
 
 </label>
 
+</div>
 
 
 
@@ -324,7 +339,7 @@ analyzeImage(file);
 
 
 
-<nav className="mt-5 space-y-1">
+<nav className="mt-0 space-y-1">
 
 
 {menuItems.map(
@@ -359,19 +374,97 @@ className="flex w-full items-center gap-3 rounded-lg px-3 py-3 text-left text-sm
 
 </nav>
 
-<div className="mt-5 rounded-xl border border-slate-700 bg-[#0b1c2b] p-3">
+<div className="mt-4 rounded-xl border border-slate-700 bg-[#0b1c2b] p-3">
 
 <h3 className="mb-2 text-sm font-semibold text-slate-200">
 📝 Notater
 </h3>
 
+
+<div className="relative">
+
+
 <textarea
 
 placeholder="Skriv kundens opplysninger eller egne notater..."
 
-className="h-32 w-full rounded-lg bg-slate-900 p-2 text-sm text-slate-200 outline-none"
+className="h-32 w-full rounded-lg bg-slate-900 p-2 pr-12 text-sm text-slate-200 outline-none"
 
 />
+
+
+<button
+
+type="button"
+
+onClick={() => {
+
+const SpeechRecognition =
+(window as any).SpeechRecognition ||
+(window as any).webkitSpeechRecognition;
+
+
+if (!SpeechRecognition) {
+
+alert("Taleopptak støttes ikke i denne nettleseren");
+
+return;
+
+}
+
+
+const recognition =
+new SpeechRecognition();
+
+
+recognition.lang = "nb-NO";
+
+recognition.continuous = false;
+
+
+recognition.onresult = (event:any)=>{
+
+const text =
+event.results[0][0].transcript;
+
+
+const textarea =
+document.querySelector(
+"textarea"
+) as HTMLTextAreaElement;
+
+
+if(textarea){
+
+textarea.value +=
+(textarea.value ? "\n" : "")
++ text;
+
+}
+
+};
+
+setRecognitionInstance(recognition);
+recognition.start();
+setIsListening(true);
+
+}}
+
+className={`absolute bottom-2 right-2 flex h-8 w-8 items-center justify-center rounded-full text-white ${
+  isListening
+    ? "bg-red-600 hover:bg-red-500"
+    : "bg-green-600 hover:bg-green-500"
+}`}
+
+>
+
+🎤
+
+</button>
+
+
+</div>
+
 
 </div>
 {activeFaultCode && (
@@ -451,281 +544,121 @@ className="w-36 rounded-lg bg-white px-3 py-2 text-lg font-bold text-black"
 
 <div className="mb-4">
 
-
 <h3 className="mb-3 text-lg font-semibold">
 Feilkoder
 </h3>
 
 
+<div className="grid grid-cols-2 gap-3">
 
 {diagnosis.faultCodes.map(
 
-(fault,index)=>(
+(fault,index)=>{
 
+const expanded =
+expandedFaultCode === fault.code;
+
+
+return (
 
 <div
 
 key={`${fault.code}-${index}`}
 
-className="mb-3 rounded-lg border border-slate-700 bg-slate-900 p-3"
+onClick={() => {
+
+  setExpandedFaultCode(
+    expanded ? "" : fault.code
+  );
+
+  setActiveFaultCode(
+    fault.code
+  );
+
+setTestStepByFault((prev) => ({
+  ...prev,
+   [fault.code]: 0,
+}));
+}}
+
+className={`
+rounded-lg 
+border 
+border-slate-700 
+bg-slate-900 
+p-3 
+cursor-pointer
+${expanded ? "col-span-1" : ""}
+`}
 
 >
 
 
 <div className="text-lg font-bold text-blue-400">
-
 {fault.code}
-
 </div>
-
 
 
 <div className="text-sm text-slate-200">
-
 {fault.description}
-
 </div>
-
 
 
 <div className="text-xs text-slate-400">
-
 {fault.module}
-
 </div>
 
 
-</div>
+
+{expanded && (
+
+<div className="mt-2 max-h-32 overflow-y-auto border-t border-slate-700 pt-2 text-xs">
 
 
+<p className="font-semibold text-xs">
+Symptomer
+</p>
+
+
+<ul className="list-disc pl-4 text-xs text-slate-300">
+
+{diagnosis.faultLibraryData
+?.find(
+(fault) => fault.code === activeFaultCode
 )
-
-)}
-
-
-</div>
-
-)}
-
-
-
-
-
-
-{currentFault && (
-
-<div className="mb-4 rounded-xl border border-blue-700 bg-blue-950/30 p-3">
-
-
-<h3 className="text-lg font-bold text-blue-300">
-
-{currentFault.code}
-
-{" – "}
-
-{currentFault.title}
-
-</h3>
-
-
-
-<div className="mt-3">
-
-
-<p className="font-semibold">
-Alvorlighetsgrad
-</p>
-
-
-<p className="text-slate-300">
-
-{currentFault.severity}
-
-</p>
-
-
-</div>
-
-
-
-
-<div className="mt-4">
-
-
-<p className="font-semibold">
-Berørte systemer
-</p>
-
-
-
-<div className="mt-2 flex flex-wrap gap-2">
-
-
-{currentFault.systems.map(
-
-(system)=>(
-
-
-<span
-
-key={system}
-
-className="rounded bg-slate-800 px-3 py-1 text-sm"
-
->
-
-{system}
-
-</span>
-
-
-)
-
-)}
-
-
-</div>
-
-</div>
-
-
-
-
-
-<div className="mt-4">
-
-
-<p className="font-semibold">
-Vanlige årsaker
-</p>
-
-
-
-<ul className="mt-2 list-disc pl-5 text-sm text-slate-300">
-
-
-{currentFault.commonCauses.map(
-
+?.symptoms
+?.map(
 (item)=>(
-
 <li key={item}>
 {item}
 </li>
-
 )
-
 )}
-
-
 </ul>
 
 
-</div>
-
-
-
-
-
-<div className="mt-4">
-
-
-<p className="font-semibold">
-Anbefalte tester
-</p>
-
-
-
-<ol className="mt-2 list-decimal pl-5 text-sm text-slate-300">
-
-
-{currentFault.recommendedTests.map(
-
-(item)=>(
-
-
-<li key={item}>
-{item}
-</li>
-
-
-)
-
-)}
-
-
-</ol>
-
-
-</div>
-
-
 
 </div>
 
 )}
 
 
+</div>
 
-
-
-
-<div className="mb-4 flex gap-3 overflow-x-auto">
-
-
-<Tab label="Oversikt" />
-
-
-
-{diagnosis?.faultCodes.map(
-
-(fault)=>(
-
-
-<Tab
-
-key={fault.code}
-
-label={`${fault.code} · ${fault.description}`}
-
-active={
-activeFaultCode === fault.code
-}
-
-
-onClick={()=>{
-
-
-setActiveFaultCode(
-fault.code
 );
 
+}
 
-setCurrentTestStep(0);
+)}
 
+</div>
 
-}}
-
-
-/>
-
-
-)
+</div>
 
 )}
 
 
-
-</div>
-
-
-<div className="grid grid-cols-[150px_minmax(280px,1fr)_260px] gap-3">
-
-
-<div className="space-y-4">
-
-
-</div>
-
+<div className="grid grid-cols-[minmax(260px,1fr)_220px] gap-3">
 
 
 
@@ -761,10 +694,30 @@ activeFaultCode={activeFaultCode}
 
 activeFaultCode={activeFaultCode}
 
-currentTestStep={currentTestStep}
+currentTestStep={
+  testStepByFault[activeFaultCode] ?? 0
+}
 
-setCurrentTestStep={setCurrentTestStep}
+setCurrentTestStep={(step) =>
+  setTestStepByFault((prev) => ({
+    ...prev,
+    [activeFaultCode]: step,
+  }))
+}
 
+onTestResult={(result) => {
+
+  setTestHistory((prev) => [
+    ...prev,
+    {
+      faultCode: activeFaultCode,
+      status: result.status,
+      title: result.title,
+      message: result.message,
+    },
+  ]);
+
+}}
 />
 
 
