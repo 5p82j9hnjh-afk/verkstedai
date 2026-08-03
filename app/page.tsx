@@ -29,15 +29,7 @@ const [expandedFaultCode, setExpandedFaultCode] =
 
   const [testStepByFault, setTestStepByFault] =
   useState<Record<string, number>>({});
-  const [testHistory, setTestHistory] = useState<
-  {
-    faultCode: string;
-    status: string;
-    title: string;
-    message: string;
-  }[]
->([]);
-
+  
 
   const [selectedImage, setSelectedImage] =
     useState<File | null>(null);
@@ -704,22 +696,11 @@ setCurrentTestStep={(step) =>
     [activeFaultCode]: step,
   }))
 }
-
 onTestResult={(result) => {
-
-  setTestHistory((prev) => [
-    ...prev,
-    {
-      faultCode: activeFaultCode,
-      status: result.status,
-      title: result.title,
-      message: result.message,
-    },
-  ]);
-
+  console.log(result);
 }}
-/>
 
+/>
 
 )}
 

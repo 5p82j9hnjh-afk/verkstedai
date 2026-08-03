@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { diagnosticProcedures } from "../data/diagnosticProcedures";
+import { testParameters } from "../data/testParameters";
 
 type GuidedDiagnosticProps = {
   activeFaultCode: string;
@@ -17,7 +18,7 @@ export default function GuidedDiagnostic({
   currentTestStep,
   setCurrentTestStep,
   onTestResult,
-}: GuidedDiagnosticProps){
+}: GuidedDiagnosticProps) {
 
   const [testResult, setTestResult] = useState<
     "ok" | "failed" | null
@@ -28,6 +29,18 @@ export default function GuidedDiagnostic({
     diagnosticProcedures[
       activeFaultCode as keyof typeof diagnosticProcedures
     ]?.[currentTestStep];
+
+
+  const currentParameters =
+    testParameters[
+      activeFaultCode as keyof typeof testParameters
+    ]?.[currentTestStep + 1];
+
+
+  const nextProcedure =
+    diagnosticProcedures[
+      activeFaultCode as keyof typeof diagnosticProcedures
+    ]?.[currentTestStep + 1];
 
 
   return (
@@ -47,12 +60,12 @@ export default function GuidedDiagnostic({
           <div className="mb-4 flex items-start gap-3">
 
 
-            <span className="flex h-8 w-8 items-center-center justify-center rounded-full border border-blue-500 text-blue-300">
+            <span className="flex h-8 w-8 items-center justify-center rounded-full border border-blue-500 text-blue-300">
               {currentTestStep + 1}
             </span>
 
 
-            <div>
+            <div className="flex-1">
 
               <h4 className="font-medium">
                 {currentProcedure.title}
@@ -63,66 +76,97 @@ export default function GuidedDiagnostic({
                 {currentProcedure.description}
               </p>
 
+
+
+              {currentParameters && (
+                <div className="mt-3 rounded-lg border border-slate-700 bg-slate-900 p-3">
+
+                  <p className="mb-2 font-medium text-cyan-300">
+                    🔧 Kontrollpunkter
+                  </p>
+
+
+                  <ul className="list-disc pl-5 text-sm text-slate-300">
+
+                    {currentParameters.map((item: string) => (
+                      <li key={item}>
+                        {item}
+                      </li>
+                    ))}
+
+                  </ul>
+
+                </div>
+              )}
+
+
+
+              {nextProcedure && (
+                <div className="mt-3 rounded-lg border border-blue-700 bg-blue-950/30 p-3">
+
+                  <p className="font-medium text-blue-300">
+                    ➡️ Neste steg
+                  </p>
+
+                  <p className="mt-1 text-sm text-slate-300">
+                    {nextProcedure.title}
+                  </p>
+
+                </div>
+              )}
+
+
             </div>
 
           </div>
 
 
 
-          <div className="mb-5 grid grid-cols-3 gap-2">
+          <div className="mb-5 grid grid-cols-2 gap-2">
 
 
             <button
-  type="button"
-  onClick={() => {
-    setTestResult("ok");
+              type="button"
+              onClick={() => {
 
-    onTestResult({
-      status: "ok",
-      title: currentProcedure.title,
-      message:
-        "ok" in currentProcedure
-          ? currentProcedure.ok ?? "Test OK"
-          : "Test OK",
-    });
-  }}
-  className="rounded-lg bg-emerald-700 py-3 text-sm"
->
-  ✓ OK
-</button>
+                setTestResult("ok");
 
+                onTestResult({
+                  status: "ok",
+                  title: currentProcedure.title,
+                  message:
+                    "ok" in currentProcedure
+                      ? currentProcedure.ok ?? "Test OK"
+                      : "Test OK",
+                });
 
-
-           <button
-  type="button"
-  onClick={() => {
-    setTestResult("failed");
-
-    onTestResult({
-      status: "failed",
-      title: currentProcedure.title,
-      message:
-        "failed" in currentProcedure
-          ? currentProcedure.failed ?? "Test ikke OK"
-          : "Test ikke OK",
-    });
-  }}
-  className="rounded-lg bg-amber-700 py-3 text-sm"
->
-  ⚠ Feil funnet
-</button>
+              }}
+              className="rounded-lg bg-emerald-700 py-3 text-sm"
+            >
+              ✓ OK
+            </button>
 
 
 
             <button
               type="button"
               onClick={() => {
-                setTestResult(null);
-                setCurrentTestStep(currentTestStep + 1);
+
+                setTestResult("failed");
+
+                onTestResult({
+                  status: "failed",
+                  title: currentProcedure.title,
+                  message:
+                    "failed" in currentProcedure
+                      ? currentProcedure.failed ?? "Test ikke OK"
+                      : "Test ikke OK",
+                });
+
               }}
-              className="rounded-lg bg-slate-700 py-3 text-sm"
+              className="rounded-lg bg-amber-700 py-3 text-sm"
             >
-              Hopp over
+              ⚠ Feil funnet
             </button>
 
 
@@ -133,9 +177,11 @@ export default function GuidedDiagnostic({
           {testResult === "ok" && (
             <div className="mb-4 rounded-lg bg-green-900/30 p-3 text-green-300">
 
-              ✓ {"ok" in currentProcedure
-  ? currentProcedure.ok ?? "Test OK. Gå videre."
-  : "Test OK. Gå videre."}
+              ✓ {
+                "ok" in currentProcedure
+                  ? currentProcedure.ok ?? "Test OK. Gå videre."
+                  : "Test OK. Gå videre."
+              }
 
             </div>
           )}
@@ -145,9 +191,11 @@ export default function GuidedDiagnostic({
           {testResult === "failed" && (
             <div className="mb-4 rounded-lg bg-red-900/30 p-3 text-red-300">
 
-             ⚠ {"failed" in currentProcedure
-  ? currentProcedure.failed ?? "Test ikke OK. Kontroller videre."
-  : "Test ikke OK. Kontroller videre."}
+              ⚠ {
+                "failed" in currentProcedure
+                  ? currentProcedure.failed ?? "Test ikke OK. Kontroller videre."
+                  : "Test ikke OK. Kontroller videre."
+              }
 
             </div>
           )}
@@ -166,28 +214,6 @@ export default function GuidedDiagnostic({
               Neste steg →
             </button>
           )}
-
-
-
-          <label className="text-sm text-slate-400">
-            Kommentar
-          </label>
-
-
-          <textarea
-            className="mt-2 min-h-24 w-full rounded-lg border border-slate-700 bg-[#071522] p-3 text-sm outline-none"
-            placeholder="Skriv kommentar her..."
-          />
-
-
-
-          <div className="mt-4 rounded-lg border border-blue-700 bg-blue-950/30 p-3">
-
-            <p className="text-sm text-slate-300">
-              <strong>Neste steg:</strong> Utfør testen over og velg resultat.
-            </p>
-
-          </div>
 
 
         </>
