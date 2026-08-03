@@ -37,12 +37,6 @@ export default function GuidedDiagnostic({
     ]?.[currentTestStep + 1];
 
 
-  const nextProcedure =
-    diagnosticProcedures[
-      activeFaultCode as keyof typeof diagnosticProcedures
-    ]?.[currentTestStep + 1];
-
-
   return (
     <div className="rounded-xl border border-slate-700 bg-[#0b1c2b] p-4">
 
@@ -50,7 +44,6 @@ export default function GuidedDiagnostic({
       <h3 className="mb-4 font-semibold">
         Pågående teststeg – {activeFaultCode}
       </h3>
-
 
 
       {currentProcedure ? (
@@ -67,6 +60,7 @@ export default function GuidedDiagnostic({
 
             <div className="flex-1">
 
+
               <h4 className="font-medium">
                 {currentProcedure.title}
               </h4>
@@ -81,36 +75,32 @@ export default function GuidedDiagnostic({
               {currentParameters && (
                 <div className="mt-3 rounded-lg border border-slate-700 bg-slate-900 p-3">
 
+
                   <p className="mb-2 font-medium text-cyan-300">
-                    🔧 Kontrollpunkter
+                    🔧 Målepunkter
                   </p>
 
 
-                  <ul className="list-disc pl-5 text-sm text-slate-300">
+                  {currentParameters.map((item, index) => (
 
-                    {currentParameters.map((item: string) => (
-                      <li key={item}>
-                        {item}
-                      </li>
-                    ))}
+                    <div
+                      key={index}
+                      className="py-2"
+                    >
 
-                  </ul>
-
-                </div>
-              )}
+                      <p className="font-medium text-slate-200">
+                        • {item.name}
+                      </p>
 
 
+                      <p className="text-sm text-slate-400">
+                        Forventet: {item.expected}
+                      </p>
 
-              {nextProcedure && (
-                <div className="mt-3 rounded-lg border border-blue-700 bg-blue-950/30 p-3">
+                    </div>
 
-                  <p className="font-medium text-blue-300">
-                    ➡️ Neste steg
-                  </p>
+                  ))}
 
-                  <p className="mt-1 text-sm text-slate-300">
-                    {nextProcedure.title}
-                  </p>
 
                 </div>
               )}

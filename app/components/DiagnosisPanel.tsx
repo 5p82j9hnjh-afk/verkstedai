@@ -138,23 +138,6 @@ export default function DiagnosisPanel({
         }
       />
 
-
-
-      <div className="rounded-lg border border-cyan-700 bg-cyan-950/30 p-4">
-
-        <h4 className="font-semibold text-cyan-300">
-          🤖 AI anbefaler neste steg
-        </h4>
-
-
-        <p className="mt-2 text-slate-200">
-          {recommendation}
-        </p>
-
-      </div>
-
-
-
       {history.length > 0 && (
 
         <div className="rounded-lg border border-slate-700 p-4">
