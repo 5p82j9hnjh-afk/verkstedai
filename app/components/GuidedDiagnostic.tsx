@@ -73,37 +73,37 @@ export default function GuidedDiagnostic({
 
 
               {currentParameters && (
-                <div className="mt-3 rounded-lg border border-slate-700 bg-slate-900 p-3">
+  <div className="mt-3 rounded-lg border border-slate-700 bg-slate-900 p-3">
 
+    <p className="mb-2 font-medium text-cyan-300">
+      🔧 Målepunkter
+    </p>
 
-                  <p className="mb-2 font-medium text-cyan-300">
-                    🔧 Målepunkter
-                  </p>
+    <div className="space-y-1">
 
+      {currentParameters.map((item, index) => (
 
-                  {currentParameters.map((item, index) => (
+        <div
+          key={index}
+          className="text-sm"
+        >
 
-                    <div
-                      key={index}
-                      className="py-2"
-                    >
+          <span className="text-slate-200">
+            • {item.name}
+          </span>
 
-                      <p className="font-medium text-slate-200">
-                        • {item.name}
-                      </p>
+          <span className="ml-2 text-slate-400">
+            ({item.expected})
+          </span>
 
+        </div>
 
-                      <p className="text-sm text-slate-400">
-                        Forventet: {item.expected}
-                      </p>
+      ))}
 
-                    </div>
+    </div>
 
-                  ))}
-
-
-                </div>
-              )}
+  </div>
+)}
 
 
             </div>

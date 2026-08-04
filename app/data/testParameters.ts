@@ -47,7 +47,6 @@ export const testParameters: Record<
     ],
 
 
-
     2: [
       {
         name: "Differansetrykk før DPF",
@@ -101,7 +100,6 @@ export const testParameters: Record<
     ],
 
 
-
     3: [
       {
         name: "Signalspenning",
@@ -136,5 +134,149 @@ export const testParameters: Record<
 
   },
 
+
+  P0401: {
+
+    1: [
+      {
+        name: "Strømforsyning EGR-ventil",
+        expected: "Batterispenning ved aktivering",
+        tool: "Multimeter",
+        measure:
+          "Kontroller spenning på forsyningsledning",
+        faultIfWrong:
+          "Kontroller strømtilførsel og ledningsnett",
+      },
+
+      {
+        name: "Jord EGR-ventil",
+        expected: "0V spenningsfall",
+        tool: "Multimeter",
+        measure:
+          "Utfør spenningsfalltest på jord",
+        faultIfWrong:
+          "Kontroller jordforbindelse",
+      },
+
+      {
+        name: "Styresignal EGR",
+        expected: "Aktivt styresignal ved aktivering",
+        tool: "Diagnoseverktøy",
+        measure:
+          "Aktiver EGR og kontroller respons",
+        faultIfWrong:
+          "Kontroller styresignal og EGR-funksjon",
+      },
+    ],
+
+
+    2: [
+      {
+        name: "EGR-kanaler",
+        expected: "Fri gjennomstrømning",
+        tool: "Visuell kontroll",
+        measure:
+          "Kontroller for sot og blokkering",
+        faultIfWrong:
+          "Rengjør kanaler ved blokkering",
+      },
+    ],
+
+
+    3: [
+      {
+        name: "Differansetrykksensor",
+        expected: "Signal innenfor spesifikasjon",
+        tool: "Diagnoseverktøy",
+        measure:
+          "Kontroller sensorverdier",
+        faultIfWrong:
+          "Kontroller sensor og ledningsnett",
+      },
+
+      {
+        name: "MAF-sensor",
+        expected: "Luftmasse følger spesifikasjon",
+        tool: "Diagnoseverktøy",
+        measure:
+          "Sammenlign luftmasse med ønsket verdi",
+        faultIfWrong:
+          "Kontroller MAF-sensor og luftsystem",
+      },
+    ],
+
+  },
+
+    P0299: {
+
+    1: [
+      {
+        name: "Ladeluftslanger",
+        expected: "Ingen lekkasje eller skade",
+        tool: "Visuell kontroll",
+        measure:
+          "Kontroller slanger, koblinger og klemmer",
+        faultIfWrong:
+          "Reparer lekkasje i ladeluftsystem",
+      },
+
+      {
+        name: "Ladetrykk",
+        expected: "Følger ønsket ladetrykk",
+        tool: "Diagnoseverktøy",
+        measure:
+          "Sammenlign ønsket og faktisk ladetrykk",
+        faultIfWrong:
+          "Kontroller turbo, aktuator og lekkasjer",
+      },
+
+      {
+        name: "MAP-signal",
+        expected: "Stabilt sensorsignal",
+        tool: "Diagnoseverktøy",
+        measure:
+          "Kontroller MAP-verdi under belastning",
+        faultIfWrong:
+          "Kontroller MAP-sensor og ledningsnett",
+      },
+    ],
+
+
+    2: [
+      {
+        name: "Turboaktuator",
+        expected: "Beveger seg korrekt ved aktivering",
+        tool: "Diagnoseverktøy",
+        measure:
+          "Utfør aktiveringstest av aktuator",
+        faultIfWrong:
+          "Kontroller aktuator, strømforsyning og styresignal",
+      },
+
+      {
+        name: "Styresignal turbo",
+        expected: "Aktivt signal fra styreenhet",
+        tool: "Diagnoseverktøy",
+        measure:
+          "Kontroller styring av turboaktuator",
+        faultIfWrong:
+          "Kontroller ledningsnett og ECU-styring",
+      },
+    ],
+
+
+    3: [
+      {
+        name: "Turbolader mekanisk kontroll",
+        expected: "Ingen unormal slakk eller skade",
+        tool: "Visuell kontroll",
+        measure:
+          "Kontroller aksling og turbin",
+        faultIfWrong:
+          "Mekanisk feil på turbolader mistenkes",
+      },
+    ],
+
+  },
 
 };

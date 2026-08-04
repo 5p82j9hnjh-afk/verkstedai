@@ -681,6 +681,10 @@ activeFaultCode={activeFaultCode}
 
 {activeFaultCode && (
 
+diagnosis?.faultLibraryData?.some(
+  (fault) => fault.code === activeFaultCode
+)
+?
 
 <GuidedDiagnostic
 
@@ -696,13 +700,84 @@ setCurrentTestStep={(step) =>
     [activeFaultCode]: step,
   }))
 }
+
 onTestResult={(result) => {
   console.log(result);
 }}
 
 />
 
+:
+
+<div className="rounded-xl border border-amber-700 bg-amber-950/40 p-4 text-amber-300">
+
+  <p className="font-semibold">
+    AI-analyse – {activeFaultCode}
+  </p>
+
+
+  <p className="mt-2 text-sm">
+    Ingen fast diagnoseprosedyre finnes i databasen.
+  </p>
+
+
+  {currentFault && (
+    <>
+
+      <p className="mt-4 font-semibold">
+        System:
+      </p>
+
+      <ul className="list-disc pl-5 text-sm">
+        {"systems" in currentFault &&
+          currentFault.systems?.map((item) => (
+            <li key={item}>
+              {item}
+            </li>
+          ))}
+      </ul>
+
+
+      <p className="mt-4 font-semibold">
+        Mulige årsaker:
+      </p>
+
+      <ul className="list-disc pl-5 text-sm">
+        {"commonCauses" in currentFault &&
+          currentFault.commonCauses?.map((item) => (
+            <li key={item}>
+              {item}
+            </li>
+          ))}
+      </ul>
+
+
+      <p className="mt-4 font-semibold">
+        Anbefalte kontroller:
+      </p>
+
+      <ul className="list-disc pl-5 text-sm">
+        {"recommendedTests" in currentFault &&
+          currentFault.recommendedTests?.map((item) => (
+            <li key={item}>
+              {item}
+            </li>
+          ))}
+      </ul>
+
+    </>
+  )}
+
+
+  <p className="mt-4 text-xs text-amber-200">
+    ⚠ AI-generert forslag – bekreft med måling.
+  </p>
+
+
+</div>
+
 )}
+
 
 
 

@@ -242,62 +242,65 @@ export async function POST(request: Request) {
 
 
 
-    const libraryMatches =
+   const libraryMatches =
 
-      faultCodes
+  faultCodes
 
-      .map((fault:any)=>{
+  .map((fault:any)=>{
 
-
-        const code =
-
-          typeof fault === "string"
-
-          ?
-
-          fault.toUpperCase()
-
-          :
-
-          fault.code?.toUpperCase();
+    const code =
+      typeof fault === "string"
+        ?
+        fault.toUpperCase()
+        :
+        fault.code?.toUpperCase();
 
 
+    if (!code) {
 
-        if (!code) {
+      return null;
 
-          return null;
-
-        }
-
+    }
 
 
-        const data =
-          faultLibrary[code];
+    const data =
+      faultLibrary[code];
+
+
+    if (!data) {
+
+      return null;
+
+    }
+
+
+    return {
+      code,
+      ...data
+    };
+
+
+  })
+
+  .filter(Boolean);
 
 
 
-        if (!data) {
+const unknownFaultCodes =
 
-          return null;
+  faultCodes.filter((fault:any)=>{
 
-        }
-
-
-
-        return {
-
-          code,
-
-          ...data
-
-        };
+    const code =
+      typeof fault === "string"
+        ?
+        fault.toUpperCase()
+        :
+        fault.code?.toUpperCase();
 
 
-      })
+    return code && !faultLibrary[code];
 
-      .filter(Boolean);
-
-
+  });
 
     const combinedCauses = [
 
@@ -331,6 +334,51 @@ export async function POST(request: Request) {
 
     ];
 
+const combinedFaultData = [
+  ...libraryMatches,
+  ...unknownFaultCodes.map((fault:any) => {
+
+    const code =
+      typeof fault === "string"
+        ? fault
+        : fault.code;
+
+    const original =
+      diagnosis.faultCodes.find(
+        (item:any) =>
+          item.code === code
+      );
+
+    return {
+      code,
+
+      title:
+        original?.description || "Ukjent feilkode",
+
+      severity:
+        "Medium",
+
+      systems:
+        diagnosis.systems || [],
+
+      symptoms:
+        diagnosis.symptoms || [],
+
+      commonCauses:
+        diagnosis.likelyCauses || [],
+
+      recommendedTests:
+        diagnosis.nextTests || [],
+
+      liveData:
+        [],
+
+      estimatedRepairTime:
+        "Ukjent",
+    };
+
+  }),
+];
 
 
     return NextResponse.json({
@@ -347,8 +395,8 @@ export async function POST(request: Request) {
         combinedTests,
 
 
-        faultLibraryData:
-        libraryMatches
+     faultLibraryData:
+combinedFaultData
 
       }
 
